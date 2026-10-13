@@ -1,0 +1,150 @@
+{
+  "missions": [
+    {
+      "id": "M01_VOICE",
+      "title": {"zh": "AI 语音助手", "en": "AI Voice Assistant"},
+      "story": {"zh": "把说的话听懂，生成回答，再读出来。", "en": "Hear speech, generate a reply, and speak it back."},
+      "io": {"input": {"zh": "语音", "en": "Speech"}, "output": {"zh": "语音回答", "en": "Spoken reply"}},
+      "difficulty": "easy",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "speech_to_text", "service": "TRANSCRIBE", "role": {"zh": "语音转文字", "en": "Speech to text"}, "required": true, "depends_on": []},
+        {"node_id": "dialogue_orchestrator", "service": "LAMBDA", "role": {"zh": "对话编排", "en": "Dialogue orchestration"}, "required": true, "depends_on": ["speech_to_text"]},
+        {"node_id": "model_inference", "service": "BEDROCK", "role": {"zh": "模型生成", "en": "Model inference"}, "required": true, "depends_on": ["dialogue_orchestrator"]},
+        {"node_id": "text_to_speech", "service": "POLLY", "role": {"zh": "文字转语音", "en": "Text to speech"}, "required": true, "depends_on": ["model_inference"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["语音链路是听写、编排、模型、朗读。", "CloudWatch 只旁路观测，不在语音数据末端。"], "en": ["The voice path is transcribe, orchestrate, model, speak.", "CloudWatch observes from the side. It is not the end of the voice path."]}
+    },
+    {
+      "id": "M02_VISION",
+      "title": {"zh": "AI 视觉识别", "en": "AI Vision"},
+      "story": {"zh": "图片放进存储，识别内容，再记下结果。", "en": "Store an image, recognize it, and keep the result."},
+      "io": {"input": {"zh": "图片", "en": "Image"}, "output": {"zh": "识别结果", "en": "Recognition result"}},
+      "difficulty": "easy",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "image_bucket", "service": "S3", "role": {"zh": "存放图片", "en": "Store the image"}, "required": true, "depends_on": []},
+        {"node_id": "vision_trigger", "service": "LAMBDA", "role": {"zh": "触发分析", "en": "Trigger analysis"}, "required": true, "depends_on": ["image_bucket"]},
+        {"node_id": "vision_model", "service": "REKOGNITION", "role": {"zh": "识别图像", "en": "Recognize the image"}, "required": true, "depends_on": ["vision_trigger"]},
+        {"node_id": "vision_table", "service": "DYNAMODB", "role": {"zh": "保存结果", "en": "Store the result"}, "required": true, "depends_on": ["vision_model"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["识别结果要有地方保存，不能停在模型调用。"], "en": ["The recognition result needs a store. The model call is not the end."]}
+    },
+    {
+      "id": "M03_IOT",
+      "title": {"zh": "智能物联网", "en": "Smart IoT"},
+      "story": {"zh": "设备上报，规则处理，结果入库。", "en": "Devices report, a rule handles the message, and the result is stored."},
+      "io": {"input": {"zh": "设备消息", "en": "Device message"}, "output": {"zh": "设备状态记录", "en": "Stored device state"}},
+      "difficulty": "easy",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "device_ingress", "service": "IOT_CORE", "role": {"zh": "设备接入", "en": "Device ingress"}, "required": true, "depends_on": []},
+        {"node_id": "iot_handler", "service": "LAMBDA", "role": {"zh": "处理消息", "en": "Handle the message"}, "required": true, "depends_on": ["device_ingress"]},
+        {"node_id": "iot_table", "service": "DYNAMODB", "role": {"zh": "保存状态", "en": "Store device state"}, "required": true, "depends_on": ["iot_handler"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["IoT Core 负责接入，不负责把状态写成业务记录。"], "en": ["IoT Core connects devices. It does not by itself become the business record."]}
+    },
+    {
+      "id": "M04_AGENT",
+      "title": {"zh": "生成式智能体", "en": "Generative AI Agent"},
+      "story": {"zh": "应用调用接口，智能体运行，并访问模型。", "en": "An app calls an API, an agent runs, and the agent calls a model."},
+      "io": {"input": {"zh": "用户请求", "en": "User request"}, "output": {"zh": "智能体回答", "en": "Agent reply"}},
+      "difficulty": "medium",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "agent_api", "service": "API_GATEWAY", "role": {"zh": "应用入口", "en": "Application entry"}, "required": true, "depends_on": []},
+        {"node_id": "agent_front", "service": "LAMBDA", "role": {"zh": "接入智能体", "en": "Front the agent"}, "required": true, "depends_on": ["agent_api"]},
+        {"node_id": "agent_runtime", "service": "AGENTCORE", "role": {"zh": "运行智能体", "en": "Run the agent"}, "required": true, "depends_on": ["agent_front"]},
+        {"node_id": "agent_model", "service": "BEDROCK", "role": {"zh": "提供模型", "en": "Provide the model"}, "required": true, "depends_on": ["agent_runtime"]},
+        {"node_id": "agent_memory", "service": "DYNAMODB", "role": {"zh": "会话记忆", "en": "Session memory"}, "required": false, "depends_on": ["agent_runtime"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["AgentCore 运行智能体，Bedrock 提供模型，两者不是同一个角色。"], "en": ["AgentCore runs the agent. Bedrock supplies the model. They are different roles."]}
+    },
+    {
+      "id": "M05_SERVERLESS_WEB",
+      "title": {"zh": "无服务器 Web", "en": "Serverless Web"},
+      "story": {"zh": "静态页面走分发，接口走函数和数据库。", "en": "Static pages are distributed, and the API runs through a function into a database."},
+      "io": {"input": {"zh": "浏览器请求", "en": "Browser request"}, "output": {"zh": "页面和数据", "en": "Page and data"}},
+      "difficulty": "medium",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "site_bucket", "service": "S3", "role": {"zh": "静态资源", "en": "Static assets"}, "required": true, "depends_on": []},
+        {"node_id": "site_cdn", "service": "CLOUDFRONT", "role": {"zh": "分发页面", "en": "Distribute the site"}, "required": true, "depends_on": ["site_bucket"]},
+        {"node_id": "web_api", "service": "API_GATEWAY", "role": {"zh": "接口入口", "en": "API entry"}, "required": true, "depends_on": []},
+        {"node_id": "web_handler", "service": "LAMBDA", "role": {"zh": "处理请求", "en": "Handle the request"}, "required": true, "depends_on": ["web_api"]},
+        {"node_id": "web_table", "service": "DYNAMODB", "role": {"zh": "业务数据", "en": "Application data"}, "required": true, "depends_on": ["web_handler"]},
+        {"node_id": "web_auth", "service": "COGNITO", "role": {"zh": "身份认证", "en": "Identity"}, "required": false, "depends_on": ["web_api"]}
+      ],
+      "teaching_points": {"zh": ["静态站和 API 是两条并行分支。", "Cognito 挂在接口入口，不是数据流的尾巴。"], "en": ["The static site and the API are parallel branches.", "Cognito sits on the API entry. It is not the tail of the data path."]}
+    },
+    {
+      "id": "M06_CLASSIC_WEB",
+      "title": {"zh": "经典云计算 Web", "en": "Classic Web"},
+      "story": {"zh": "计算在虚拟机，静态文件在对象存储，再经分发访问。", "en": "Compute runs on a virtual machine, static files live in object storage, and a CDN serves them."},
+      "io": {"input": {"zh": "用户访问", "en": "User visit"}, "output": {"zh": "网站页面", "en": "Website"}},
+      "difficulty": "easy",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "app_server", "service": "EC2", "role": {"zh": "应用计算", "en": "Application compute"}, "required": true, "depends_on": []},
+        {"node_id": "asset_bucket", "service": "S3", "role": {"zh": "静态文件", "en": "Static files"}, "required": true, "depends_on": []},
+        {"node_id": "asset_cdn", "service": "CLOUDFRONT", "role": {"zh": "分发文件", "en": "Distribute files"}, "required": true, "depends_on": ["asset_bucket"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["CloudFront 分发的是 S3 里的文件，不是把 EC2 串成唯一出口。"], "en": ["CloudFront distributes files from S3. EC2 is not forced into that same line."]}
+    },
+    {
+      "id": "M07_EVENT_DRIVEN",
+      "title": {"zh": "事件驱动处理", "en": "Event-Driven Processing"},
+      "story": {"zh": "接收请求，排队，再由另一个函数处理后写入数据库。", "en": "Accept a request, queue the work, then let another function store the result."},
+      "io": {"input": {"zh": "任务请求", "en": "Job request"}, "output": {"zh": "处理结果", "en": "Processed result"}},
+      "difficulty": "medium",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "job_api", "service": "API_GATEWAY", "role": {"zh": "接收请求", "en": "Accept the request"}, "required": true, "depends_on": []},
+        {"node_id": "producer_lambda", "service": "LAMBDA", "role": {"zh": "写入队列", "en": "Enqueue the job"}, "required": true, "depends_on": ["job_api"]},
+        {"node_id": "job_queue", "service": "SQS", "role": {"zh": "排队", "en": "Queue the work"}, "required": true, "depends_on": ["producer_lambda"]},
+        {"node_id": "worker_lambda", "service": "LAMBDA", "role": {"zh": "取出处理", "en": "Dequeue and work"}, "required": true, "depends_on": ["job_queue"]},
+        {"node_id": "job_table", "service": "DYNAMODB", "role": {"zh": "保存结果", "en": "Store the result"}, "required": true, "depends_on": ["worker_lambda"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["SQS 是队列，不是处理器。", "两只 Lambda 是同一张实体卡上的两个角色，必须松开后再按第二次。"], "en": ["SQS is a queue, not a processor.", "The two Lambdas are two roles on the same physical card. Release the key before the second press."]}
+    },
+    {
+      "id": "M08_ML",
+      "title": {"zh": "机器学习推理", "en": "Machine Learning Inference"},
+      "story": {"zh": "数据进入存储并用于模型，应用经接口调用推理。", "en": "Data lands in storage for the model, and an app calls inference through an API."},
+      "io": {"input": {"zh": "训练数据与推理请求", "en": "Training data and an inference request"}, "output": {"zh": "模型预测", "en": "Model prediction"}},
+      "difficulty": "medium",
+      "ranked": true,
+      "nodes": [
+        {"node_id": "dataset", "service": "S3", "role": {"zh": "存放数据", "en": "Store the dataset"}, "required": true, "depends_on": []},
+        {"node_id": "infer_api", "service": "API_GATEWAY", "role": {"zh": "推理入口", "en": "Inference entry"}, "required": true, "depends_on": []},
+        {"node_id": "infer_handler", "service": "LAMBDA", "role": {"zh": "调用模型", "en": "Call the model"}, "required": true, "depends_on": ["infer_api"]},
+        {"node_id": "model_host", "service": "SAGEMAKER_AI", "role": {"zh": "托管模型", "en": "Host the model"}, "required": true, "depends_on": ["dataset", "infer_handler"]},
+        {"node_id": "observe", "service": "CLOUDWATCH", "role": {"zh": "观测", "en": "Observability"}, "required": false, "depends_on": []}
+      ],
+      "teaching_points": {"zh": ["SageMaker 同时依赖数据和调用它的函数，两条线都到齐才算这个角色。"], "en": ["SageMaker depends on both the dataset and the function that calls it."]}
+    },
+    {
+      "id": "M09_PROTECTED_WEB",
+      "title": {"zh": "带身份认证的 Web", "en": "Protected Web"},
+      "story": {"zh": "和无服务器 Web 相同，但身份认证是必需的。", "en": "The same shape as the serverless web, with identity required."},
+      "io": {"input": {"zh": "已登录的浏览器请求", "en": "Signed-in browser request"}, "output": {"zh": "受保护的页面和数据", "en": "Protected page and data"}},
+      "difficulty": "medium",
+      "ranked": false,
+      "nodes": [
+        {"node_id": "site_bucket", "service": "S3", "role": {"zh": "静态资源", "en": "Static assets"}, "required": true, "depends_on": []},
+        {"node_id": "site_cdn", "service": "CLOUDFRONT", "role": {"zh": "分发页面", "en": "Distribute the site"}, "required": true, "depends_on": ["site_bucket"]},
+        {"node_id": "web_api", "service": "API_GATEWAY", "role": {"zh": "接口入口", "en": "API entry"}, "required": true, "depends_on": []},
+        {"node_id": "web_auth", "service": "COGNITO", "role": {"zh": "身份认证", "en": "Identity"}, "required": true, "depends_on": ["web_api"]},
+        {"node_id": "web_handler", "service": "LAMBDA", "role": {"zh": "处理请求", "en": "Handle the request"}, "required": true, "depends_on": ["web_api", "web_auth"]},
+        {"node_id": "web_table", "service": "DYNAMODB", "role": {"zh": "业务数据", "en": "Application data"}, "required": true, "depends_on": ["web_handler"]}
+      ],
+      "teaching_points": {"zh": ["这套只用于引导和自由构建，不进入第一版正式题包。"], "en": ["This mission is for Guided and Free only. It is not in the first ranked pack."]}
+    }
+  ]
+}

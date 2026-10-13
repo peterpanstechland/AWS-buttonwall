@@ -1,0 +1,63 @@
+{
+  "source": "https://aws.amazon.com/architecture/icons/",
+  "package": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+  "release": "2026-07-31",
+  "icons": {
+    "s3": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Simple-Storage-Service_64.svg",
+      "sha256": "b92c5101cc6565dd12df37655802279f8fba0c719279f62f93106d26750b36c6"
+    },
+    "lambda": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_AWS-Lambda_64.svg",
+      "sha256": "5818c80cd8e7d08891a2492c7694f472ca914fb3a99d9ef8e597db0b37ad7f13"
+    },
+    "dynamodb": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-DynamoDB_64.svg",
+      "sha256": "ed169f049cc24c954cfbe3d14695d5b022558c45e5605936a565d1347c14b664"
+    },
+    "api-gateway": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-API-Gateway_64.svg",
+      "sha256": "a91afd652b8d3412179d0257a818165149224d521e4e1906ee8ea0cd28666a31"
+    },
+    "cloudfront": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-CloudFront_64.svg",
+      "sha256": "664919982792a69058077eaf39240afd320bbcbd082d36a9148184ec32708cd5"
+    },
+    "sqs": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-Simple-Queue-Service_64.svg",
+      "sha256": "bbab2545dccba2e11aff74e42c7f8078a9051b14b16114e539da1c4b09bdbdcd"
+    },
+    "bedrock": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Bedrock_64.svg",
+      "sha256": "80fa4190bb55bde5c3004ed8d2f16bf25db28d230cf46760813f2171636ea105"
+    },
+    "agentcore": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Bedrock-AgentCore_64.svg",
+      "sha256": "09596bda3e7cd42288deec94d3b4647bcc951c3b8855236e8a88d31e1766636f"
+    },
+    "sagemaker": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-SageMaker-AI_64.svg",
+      "sha256": "0f20b8580a9caee9e15be0f866112e29c44c73900869e76df3cd197eaf778684"
+    },
+    "rekognition": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Rekognition_64.svg",
+      "sha256": "1f60c9174f2e4bf06e873a43fa28ef7f7a1881fc310950102b07feb965d07000"
+    },
+    "transcribe": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Transcribe_64.svg",
+      "sha256": "406e94584cfc1c614b6f5cdee9c2f50e0c428edf1d86c6b43840c11a613f6c56"
+    },
+    "polly": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Polly_64.svg",
+      "sha256": "0efa49fac923477f5b556f7c543d44b58b3f10f311c6fd12e2b731f81fb4ff57"
+    },
+    "cloudwatch": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_Amazon-CloudWatch_64.svg",
+      "sha256": "a84b5b88172ab39170eaa6154345332d755758a37cda6a5580981cf679e01c0b"
+    },
+    "cognito": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_Amazon-Cognito_64.svg",
+      "sha256": "cf9c55baa325d5d07aea0054115b1b24d68c1d7e046a4f8a360ccdefbba507e9"
+    }
+  }
+}

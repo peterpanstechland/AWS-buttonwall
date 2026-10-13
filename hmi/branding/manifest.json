@@ -1,0 +1,29 @@
+{
+  "assets": [
+    {
+      "file": "kiro.svg",
+      "source": "icon.svg",
+      "provided_by": "user",
+      "sha256": "774cbc1c7ecec8c935a6091595583d7a92fc8289d6f1db3f071c0f50c61c369f"
+    },
+    {
+      "file": "aws-china-light.png",
+      "source": "Weixin Image_2026-10-13_154047_267.png",
+      "provided_by": "user",
+      "sha256": "30a37d5b49a95f528a6c846c805cafec85dccb72af5927f77aa8aaaf57a24dcd"
+    },
+    {
+      "file": "aws-china-dark.png",
+      "source": "Weixin Image_2026-10-13_154055_885.png",
+      "provided_by": "user",
+      "sha256": "99988e83b37e13c8eddfc515970a6b2c052aad3e5d3f4a8fd9b7861ba247236b"
+    }
+  ],
+  "png_alpha_bounds": [
+    0,
+    864,
+    2470,
+    1606
+  ],
+  "display_note": "Original PNG pixels and SVG retained; CSS hides transparent vertical canvas margins."
+}

@@ -1,0 +1,32 @@
+{
+  "zh": {
+    "hit_kiro": "拍下 Kiro",
+    "hit_kiro_en": "HIT KIRO TO START",
+    "lobby_title": "选择构建方式",
+    "guided": "引导构建",
+    "free": "自由构建",
+    "rush": "60 秒竞速",
+    "simulated": "模拟架构构建完成",
+    "simulated_en": "SIMULATED SOLUTION COMPLETE",
+    "interrupted": "本局中断，不入正式榜",
+    "release_keys": "请先松开所有按键",
+    "wait_step": "请等下一步",
+    "analyze": "分析组合",
+    "confirm_scene": "确认这个场景"
+  },
+  "en": {
+    "hit_kiro": "HIT KIRO TO START",
+    "hit_kiro_en": "拍下 Kiro",
+    "lobby_title": "Choose a mode",
+    "guided": "Guided Build",
+    "free": "Free Build",
+    "rush": "Builder Rush 60",
+    "simulated": "SIMULATED SOLUTION COMPLETE",
+    "simulated_en": "模拟架构构建完成",
+    "interrupted": "Interrupted. Not ranked.",
+    "release_keys": "Release every key first",
+    "wait_step": "Wait for the next step",
+    "analyze": "Analyze",
+    "confirm_scene": "Confirm this scene"
+  }
+}

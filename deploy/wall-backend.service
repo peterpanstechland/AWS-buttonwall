@@ -1,0 +1,15 @@
+[Unit]
+Description=AWS wall game backend
+After=multi-user.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/aws-wall/current
+Environment=DEVICE_MODE=mock
+Environment=WALL_PORT=8091
+ExecStart=/usr/bin/python3 -m wall_backend
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

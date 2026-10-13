@@ -1,0 +1,52 @@
+{
+  "ruleset_version": "rules-v1.3-collapse",
+  "scoring_version": "score-v1.2",
+  "participant_class": "OPEN",
+  "event_timezone": "Asia/Shanghai",
+  "debounce_us": 20000,
+  "click_window_us": 300000,
+  "hold_us": 2000000,
+  "settling_timeout_us": 2000000,
+  "pre_countdown_ms": 3000,
+  "rush_duration_ms": 60000,
+  "collapse": {"wrong_service": true, "step_timeout_ms": 10000, "round_timeout": true},
+  "brightness_cap": 0.25,
+  "complete_cue_ms": 800,
+  "node_points": 100,
+  "complete_points": 300,
+  "error_points": 50,
+  "combo_step": 20,
+  "combo_cap": 100,
+  "score_floor": 0,
+  "ranked_optional_points": 0,
+  "pack": {
+    "pack_id": "EVENT-20261014-A",
+    "mission_ids": [
+      "M01_VOICE",
+      "M02_VISION",
+      "M03_IOT",
+      "M04_AGENT",
+      "M05_SERVERLESS_WEB",
+      "M06_CLASSIC_WEB",
+      "M07_EVENT_DRIVEN",
+      "M08_ML"
+    ]
+  },
+  "lobby_shortcuts": {
+    "EC2": "GUIDED",
+    "S3": "FREE",
+    "LAMBDA": "RUSH60_RANKED"
+  },
+  "colors": {
+    "compute": [40, 120, 255],
+    "storage": [40, 180, 90],
+    "database": [150, 80, 220],
+    "network": [255, 140, 40],
+    "integration": [255, 196, 0],
+    "iot": [0, 180, 170],
+    "ai": [220, 60, 140],
+    "observability": [160, 170, 180],
+    "security": [230, 190, 70],
+    "entry": [255, 220, 120]
+  }
+}

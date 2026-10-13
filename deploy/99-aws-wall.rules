@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", SYMLINK+="aws-wall-mcu", MODE="0660", GROUP="dialout"

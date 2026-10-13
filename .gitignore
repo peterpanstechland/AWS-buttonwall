@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+wall.db
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+firmware/dependencies.lock

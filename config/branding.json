@@ -1,0 +1,6 @@
+{
+  "product_name": "Architecture Challenge",
+  "start_label": {"zh": "拍下 Kiro", "en": "HIT KIRO TO START"},
+  "completion": {"zh": "模拟架构构建完成", "en": "SIMULATED SOLUTION COMPLETE"},
+  "aws_word_on_kiro_panel": false
+}

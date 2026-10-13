@@ -1,0 +1,21 @@
+{
+  "services": [
+    {"id": 0, "key": "KIRO_START", "official_en": "Kiro START", "display_name_cn_event": "开始构建", "slot": "START", "category": "entry"},
+    {"id": 1, "key": "EC2", "official_en": "Amazon EC2", "display_name_cn_event": "弹性计算", "slot": "A1", "category": "compute"},
+    {"id": 2, "key": "S3", "official_en": "Amazon S3", "display_name_cn_event": "对象存储", "slot": "A2", "category": "storage"},
+    {"id": 3, "key": "LAMBDA", "official_en": "AWS Lambda", "display_name_cn_event": "无服务器计算", "slot": "A3", "category": "compute"},
+    {"id": 4, "key": "DYNAMODB", "official_en": "Amazon DynamoDB", "display_name_cn_event": "NoSQL数据库", "slot": "A4", "category": "database"},
+    {"id": 5, "key": "API_GATEWAY", "official_en": "Amazon API Gateway", "display_name_cn_event": "API 管理", "slot": "B1", "category": "network"},
+    {"id": 6, "key": "CLOUDFRONT", "official_en": "Amazon CloudFront", "display_name_cn_event": "内容分发", "slot": "B2", "category": "network"},
+    {"id": 7, "key": "IOT_CORE", "official_en": "AWS IoT Core", "display_name_cn_event": "物联网", "slot": "B3", "category": "iot"},
+    {"id": 8, "key": "SQS", "official_en": "Amazon SQS", "display_name_cn_event": "消息队列", "slot": "B4", "category": "integration"},
+    {"id": 9, "key": "BEDROCK", "official_en": "Amazon Bedrock", "display_name_cn_event": "生成式 AI", "slot": "C1", "category": "ai"},
+    {"id": 10, "key": "AGENTCORE", "official_en": "Amazon Bedrock AgentCore", "display_name_cn_event": "AI 智能体", "slot": "C2", "category": "ai"},
+    {"id": 11, "key": "SAGEMAKER_AI", "official_en": "Amazon SageMaker AI", "display_name_cn_event": "机器学习", "slot": "C3", "category": "ai"},
+    {"id": 12, "key": "REKOGNITION", "official_en": "Amazon Rekognition", "display_name_cn_event": "计算机视觉", "slot": "C4", "category": "ai"},
+    {"id": 13, "key": "TRANSCRIBE", "official_en": "Amazon Transcribe", "display_name_cn_event": "语音识别", "slot": "D1", "category": "ai"},
+    {"id": 14, "key": "POLLY", "official_en": "Amazon Polly", "display_name_cn_event": "语音合成", "slot": "D2", "category": "ai"},
+    {"id": 15, "key": "CLOUDWATCH", "official_en": "Amazon CloudWatch", "display_name_cn_event": "可观测性", "slot": "D3", "category": "observability"},
+    {"id": 16, "key": "COGNITO", "official_en": "Amazon Cognito", "display_name_cn_event": "身份认证", "slot": "D4", "category": "security"}
+  ]
+}

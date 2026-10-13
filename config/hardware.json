@@ -1,0 +1,77 @@
+{
+  "board": "BW-MAIN",
+  "revision": "v0.8",
+  "calibration": "schematic-v0.8-not-field-verified",
+  "note": "Pins come from the BW-MAIN v0.8 schematic netlist. Field mapping CRC must be redone after booth calibration. Do not treat this file as a passed hardware acceptance.",
+  "mcu": {
+    "module": "ESP32-S3-N16R8",
+    "usb": "native-otg-gpio19-20",
+    "log_uart": "gpio43-44"
+  },
+  "led": {
+    "family": "WS2815",
+    "supply": "12V",
+    "pixels_per_panel": 32,
+    "color_order": "GRB",
+    "reset_us": 280,
+    "oe_gpio": 42,
+    "oe_active_low": true,
+    "lanes": [
+      {"lane": "A", "gpio": 1, "slots": ["A1", "A2", "A3", "A4"]},
+      {"lane": "B", "gpio": 2, "slots": ["B1", "B2", "B3", "B4"]},
+      {"lane": "C", "gpio": 41, "slots": ["C1", "C2", "C3", "C4"]},
+      {"lane": "D", "gpio": 40, "slots": ["D1", "D2", "D3", "D4"]}
+    ]
+  },
+  "buttons": [
+    {"id": 0, "key": "KIRO_START", "slot": "START", "gpio": 39},
+    {"id": 1, "key": "EC2", "slot": "A1", "gpio": 11},
+    {"id": 2, "key": "S3", "slot": "A2", "gpio": 12},
+    {"id": 3, "key": "LAMBDA", "slot": "A3", "gpio": 13},
+    {"id": 4, "key": "DYNAMODB", "slot": "A4", "gpio": 14},
+    {"id": 5, "key": "API_GATEWAY", "slot": "B1", "gpio": 18},
+    {"id": 6, "key": "CLOUDFRONT", "slot": "B2", "gpio": 8},
+    {"id": 7, "key": "IOT_CORE", "slot": "B3", "gpio": 9},
+    {"id": 8, "key": "SQS", "slot": "B4", "gpio": 10},
+    {"id": 9, "key": "BEDROCK", "slot": "C1", "gpio": 4},
+    {"id": 10, "key": "AGENTCORE", "slot": "C2", "gpio": 15},
+    {"id": 11, "key": "SAGEMAKER_AI", "slot": "C3", "gpio": 16},
+    {"id": 12, "key": "REKOGNITION", "slot": "C4", "gpio": 17},
+    {"id": 13, "key": "TRANSCRIBE", "slot": "D1", "gpio": 21},
+    {"id": 14, "key": "POLLY", "slot": "D2", "gpio": 5},
+    {"id": 15, "key": "CLOUDWATCH", "slot": "D3", "gpio": 6},
+    {"id": 16, "key": "COGNITO", "slot": "D4", "gpio": 7}
+  ],
+  "display_grid": [
+    ["A1", "A2", "B1", "B2"],
+    ["A3", "A4", "B3", "B4"],
+    ["C1", "C2", "D1", "D2"],
+    ["C3", "C4", "D3", "D4"]
+  ],
+  "lamps": {
+    "start_neopixel": false,
+    "button_lamps": true,
+    "voltage": "unconfirmed",
+    "i2c_sda": 47,
+    "i2c_scl": 3,
+    "mcp23017_addr": 32,
+    "bits": {
+      "A1": {"port": "A", "bit": 0},
+      "A2": {"port": "A", "bit": 1},
+      "A3": {"port": "A", "bit": 2},
+      "A4": {"port": "A", "bit": 3},
+      "B4": {"port": "A", "bit": 4},
+      "B3": {"port": "A", "bit": 5},
+      "B2": {"port": "A", "bit": 6},
+      "B1": {"port": "A", "bit": 7},
+      "C1": {"port": "B", "bit": 0},
+      "C2": {"port": "B", "bit": 1},
+      "C3": {"port": "B", "bit": 2},
+      "C4": {"port": "B", "bit": 3},
+      "D1": {"port": "B", "bit": 4},
+      "D2": {"port": "B", "bit": 5},
+      "D3": {"port": "B", "bit": 6},
+      "D4": {"port": "B", "bit": 7}
+    }
+  }
+}
