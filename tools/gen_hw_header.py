@@ -12,6 +12,9 @@ lines = [
     f"#define HW_REVISION \"{hardware['revision']}\"",
     f"#define HW_PIXELS_PER_PANEL {hardware['led']['pixels_per_panel']}",
     f"#define HW_OE_GPIO {hardware['led']['oe_gpio']}",
+    f"#define HW_I2C_SDA_GPIO {hardware['lamps']['i2c_sda']}",
+    f"#define HW_I2C_SCL_GPIO {hardware['lamps']['i2c_scl']}",
+    f"#define HW_MCP23017_ADDR {hardware['lamps']['mcp23017_addr']}",
     f"#define HW_BUTTON_COUNT {len(hardware['buttons'])}",
     f"#define HW_LANE_COUNT {len(hardware['led']['lanes'])}",
     "static const int HW_BUTTON_GPIO[HW_BUTTON_COUNT] = {",
@@ -30,6 +33,21 @@ for button in hardware["buttons"]:
     bits.append(str(lamp["bit"] + (8 if lamp["port"] == "B" else 0)))
 lines.append("static const int8_t HW_LAMP_BIT[HW_BUTTON_COUNT] = {")
 lines.append("    " + ", ".join(bits))
+lines.append("};")
+slot_lane = {}
+for index, lane in enumerate(hardware["led"]["lanes"]):
+    for slot in lane["slots"]:
+        slot_lane[slot] = index
+lanes = []
+names = []
+for button in hardware["buttons"]:
+    names.append('"' + button["slot"] + '"')
+    lanes.append(str(slot_lane.get(button["slot"], -1)))
+lines.append("static const char *HW_BUTTON_NAME[HW_BUTTON_COUNT] = {")
+lines.append("    " + ", ".join(names))
+lines.append("};")
+lines.append("static const int HW_BUTTON_LANE[HW_BUTTON_COUNT] = {")
+lines.append("    " + ", ".join(lanes))
 lines.append("};")
 target = ROOT / "firmware" / "main" / "generated_hw.h"
 target.parent.mkdir(parents=True, exist_ok=True)

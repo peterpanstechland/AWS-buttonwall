@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>按钮墙逐口测试</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0;
+    background: #141414;
+    color: #fff9e3;
+    font-family: "Segoe UI", sans-serif;
+  }
+  header, main { padding: 16px 20px; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  h1 { font-size: 22px; margin: 0; font-weight: 650; }
+  button, select {
+    font: inherit;
+    color: #141414;
+    background: #ffd900;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.45; cursor: default; }
+  #link { color: #fff9e3; }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .cell {
+    min-height: 148px;
+    background: #2a2a2a;
+    color: #fff9e3;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .cell b { font-size: 42px; line-height: 1; }
+  .cell span { font-size: 14px; opacity: 0.8; }
+  .cell.run { background: #3d3408; outline: 4px solid #ffd900; }
+  .cell.pass { background: #1c6b3a; }
+  .cell.bad { background: #8d2b2b; }
+  .panel {
+    background: #1d1d1d;
+    border-radius: 12px;
+    padding: 16px 18px;
+    min-height: 320px;
+  }
+  .panel h2 { margin: 0 0 8px; font-size: 28px; }
+  .panel p { margin: 8px 0; line-height: 1.45; font-size: 18px; }
+  .wait { color: #ffd900; }
+  .pass { color: #8ee0a8; }
+  .bad { color: #ffb4b4; }
+  pre {
+    margin: 12px 0 0;
+    max-height: 140px;
+    overflow: auto;
+    color: #c8c0a4;
+    font-size: 12px;
+    white-space: pre-wrap;
+  }
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; }
+    .cell { min-height: 96px; }
+    .cell b { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>逐口测试 · 4×4</h1>
+  <button id="connect" type="button">连接串口</button>
+  <button id="off" type="button" disabled>全部熄灭</button>
+  <span id="link">未连接</span>
+</header>
+<main>
+  <div id="grid" class="grid"></div>
+  <section class="panel">
+    <h2 id="title">点一个口</h2>
+    <p id="body">把唯一那套按键、灯带和按钮灯插到对应插座。换口之前先关掉 12V。按插座上的丝印找口，不按左右。</p>
+    <pre id="log"></pre>
+  </section>
+</main>
+<script>
+const HW = __HW_JSON__;
+const CN = {
+  A1: "CN21", A2: "CN22", A3: "CN23", A4: "CN24",
+  B1: "CN25", B2: "CN26", B3: "CN27", B4: "CN28",
+  C1: "CN29", C2: "CN30", C3: "CN31", C4: "CN32",
+  D1: "CN33", D2: "CN34", D3: "CN35", D4: "CN36"
+};
+const LANE_COLOR = { A: "红色", B: "绿色", C: "蓝色", D: "黄色" };
+const bySlot = Object.fromEntries(HW.buttons.map((b) => [b.slot, b]));
+const status = {};
+let active = null;
+let port, reader, writer;
+let lampFault = false;
+const logEl = document.getElementById("log");
+const titleEl = document.getElementById("title");
+const bodyEl = document.getElementById("body");
+
+function log(line) {
+  logEl.textContent = (logEl.textContent + line + "\n").split("\n").slice(-14).join("\n");
+}
+
+function upstream(slot) {
+  const n = Number(slot[1]);
+  const names = [];
+  for (let i = 1; i < n; i++) names.push(slot[0] + i);
+  return names;
+}
+
+function render() {
+  for (const button of document.querySelectorAll(".cell")) {
+    const slot = button.dataset.slot;
+    button.classList.remove("run", "pass", "bad");
+    if (slot === active) button.classList.add("run");
+    else if (status[slot]) button.classList.add(status[slot]);
+  }
+}
+
+function describe(slot) {
+  const key = bySlot[slot] ? bySlot[slot].key : "";
+  const gpio = bySlot[slot] ? bySlot[slot].gpio : "";
+  const prev = upstream(slot);
+  const color = LANE_COLOR[slot[0]] || "";
+  let wire = `把线束插到 ${slot}（${CN[slot] || ""}）。灯带应跑${color}，按钮灯应亮。`;
+  if (prev.length) {
+    const shorts = prev.map((name) => `${name}（${CN[name]}）的第 5 脚和第 7 脚`).join("、");
+    wire += ` 这一口的灯带数据从前面串过来，原理图没有旁路跳帽。测灯带前先断电，把 ${shorts} 短接，再上电。按键和按钮灯不经过这串数据，不短接也能测。`;
+  } else {
+    wire += " 这一口是该组数据入口，灯带直接接在电平转换后面。";
+  }
+  wire += ` 现在按下这个口上的按键。固件里这一口的按键是 GPIO${gpio}（${key}）。换下一个口之前先关 12V。`;
+  if (lampFault) wire += " 按钮灯芯片没有应答，按钮灯可能不亮，灯带和按键仍可测。";
+  titleEl.textContent = slot;
+  bodyEl.className = "wait";
+  bodyEl.textContent = wire;
+}
+
+function onPress(name) {
+  if (!active) {
+    titleEl.textContent = "收到 " + name;
+    bodyEl.className = "";
+    bodyEl.textContent = "还没有选口。先点 4×4 里的一个口。";
+    return;
+  }
+  if (name === active) {
+    status[active] = "pass";
+    titleEl.textContent = active + " 按键正常";
+    bodyEl.className = "pass";
+    bodyEl.textContent = "收到 " + active + " 按下。可以关 12V，把线束换到下一个口。";
+  } else {
+    status[active] = "bad";
+    titleEl.textContent = "按键接到了 " + name;
+    bodyEl.className = "bad";
+    bodyEl.textContent = "正在测 " + active + "，串口收到的是 " + name + "。看这根按键线是不是拧到了别的口。";
+  }
+  render();
+}
+
+function onLine(line) {
+  log(line);
+  if (!line.startsWith("BW ")) return;
+  const parts = line.slice(3).trim().split(/\s+/);
+  if (parts[0] === "PONG") {
+    document.getElementById("link").textContent = "已连接 " + (parts[1] || "");
+  } else if (parts[0] === "ERR" && parts[1] === "LAMP") {
+    lampFault = true;
+    if (active) describe(active);
+  } else if (parts[0] === "BTN" && parts[2] === "DOWN") {
+    onPress(parts[1]);
+  } else if (parts[0] === "OK" && parts[1] === "OFF") {
+    active = null;
+    titleEl.textContent = "已熄灭";
+    bodyEl.className = "";
+    bodyEl.textContent = "灯带已发全黑，按钮灯已关。点下一个口继续。";
+    render();
+  }
+}
+
+async function send(text) {
+  if (!writer) return;
+  await writer.write(new TextEncoder().encode(text + "\n"));
+}
+
+async function readLoop() {
+  const decoder = new TextDecoder();
+  let buf = "";
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).replace(/\r/g, "").trim();
+        buf = buf.slice(nl + 1);
+        if (line) onLine(line);
+      }
+    }
+  } catch (err) {
+    log(String(err));
+  }
+  document.getElementById("link").textContent = "串口已断开";
+  document.getElementById("off").disabled = true;
+  writer = null;
+  reader = null;
+}
+
+async function connect() {
+  if (!navigator.serial) {
+    bodyEl.textContent = "这个页面要用 Chrome 或 Edge 打开，才能选串口。";
+    return;
+  }
+  port = await navigator.serial.requestPort();
+  await port.open({ baudRate: 115200 });
+  writer = port.writable.getWriter();
+  reader = port.readable.getReader();
+  document.getElementById("off").disabled = false;
+  document.getElementById("link").textContent = "串口已打开，等待固件应答";
+  readLoop();
+  await send("BW PING");
+  setTimeout(() => {
+    if (document.getElementById("link").textContent.indexOf("已连接") !== 0) {
+      bodyEl.className = "bad";
+      bodyEl.textContent = "串口开了，没有收到 BW PONG。用开发板上 CH340 那个 USB，波特率 115200，并烧录带逐口测试的固件。原生 USB 那只现在没有接 CDC。";
+    }
+  }, 1500);
+}
+
+async function choose(slot) {
+  if (!writer) {
+    bodyEl.textContent = "先连接串口。";
+    return;
+  }
+  active = slot;
+  lampFault = false;
+  delete status[slot];
+  describe(slot);
+  render();
+  await send("BW SLOT " + slot);
+}
+
+document.getElementById("grid").innerHTML = HW.display_grid.map((row) =>
+  row.map((slot) => {
+    const key = bySlot[slot] ? bySlot[slot].key : "";
+    return `<button type="button" class="cell" data-slot="${slot}"><b>${slot}</b><span>${key}</span></button>`;
+  }).join("")
+).join("");
+document.getElementById("grid").addEventListener("click", (event) => {
+  const cell = event.target.closest(".cell");
+  if (cell) choose(cell.dataset.slot);
+});
+document.getElementById("connect").addEventListener("click", () => {
+  connect().catch((err) => { bodyEl.textContent = String(err); });
+});
+document.getElementById("off").addEventListener("click", () => send("BW OFF"));
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 #include "awg1.h"
+#include "bringup.h"
 #include "input_scan.h"
 #include "strip_engine.h"
 
@@ -24,14 +25,12 @@ void app_main(void)
     size_t n = awg1_encode(hello, sizeof hello, 0x01, 1, true,
                            "{\"device_id\":\"wall-mcu-01\",\"proto_major\":1,\"proto_minor\":2}");
     ESP_LOGI(TAG, "boot dark, hello frame %u bytes, logs stay on UART", (unsigned)n);
+    esp_log_level_set("*", ESP_LOG_WARN);
+    bringup_init();
     while (true) {
-        input_scan_tick(esp_timer_get_time());
-        input_event_t event;
-        while (input_pop(&event)) {
-            if (event.down) {
-                ESP_LOGI(TAG, "button %u raw %llu", event.button_id, (unsigned long long)event.raw_us);
-            }
-        }
+        uint64_t now = esp_timer_get_time();
+        input_scan_tick(now);
+        bringup_poll(now);
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 }

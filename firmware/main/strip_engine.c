@@ -1,9 +1,12 @@
 #include "strip_engine.h"
 
-#include "esp_check.h"
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "generated_hw.h"
+
+#include <string.h>
 
 #define PIXELS (HW_PIXELS_PER_PANEL * 4)
 #define BRIGHT_NUM 1
@@ -39,15 +42,52 @@ void strip_init(void)
     }
 }
 
+static void put_pixel(int lane, int index, uint8_t r, uint8_t g, uint8_t b)
+{
+    pixels[lane][index * 3] = g;
+    pixels[lane][index * 3 + 1] = r;
+    pixels[lane][index * 3 + 2] = b;
+}
+
 void strip_fill(int lane, uint8_t r, uint8_t g, uint8_t b)
 {
     scale(&r);
     scale(&g);
     scale(&b);
     for (int i = 0; i < PIXELS; i++) {
-        pixels[lane][i * 3] = g;
-        pixels[lane][i * 3 + 1] = r;
-        pixels[lane][i * 3 + 2] = b;
+        put_pixel(lane, i, r, g, b);
+    }
+}
+
+void strip_clear(void)
+{
+    memset(pixels, 0, sizeof pixels);
+}
+
+void strip_chase(int lane, int count, uint8_t r, uint8_t g, uint8_t b, int hot)
+{
+    if (lane < 0 || lane >= HW_LANE_COUNT || count <= 0) {
+        return;
+    }
+    if (count > PIXELS) {
+        count = PIXELS;
+    }
+    uint8_t hr = 255;
+    uint8_t hg = 255;
+    uint8_t hb = 255;
+    scale(&r);
+    scale(&g);
+    scale(&b);
+    scale(&hr);
+    scale(&hg);
+    scale(&hb);
+    hot %= count;
+    for (int i = 0; i < count; i++) {
+        if (i == hot) {
+            put_pixel(lane, i, hr, hg, hb);
+        } else {
+            put_pixel(lane, i, r, g, b);
+        }
     }
 }
 
@@ -55,6 +95,8 @@ void strip_show(void)
 {
     rmt_transmit_config_t tx = {.loop_count = 0};
     for (int lane = 0; lane < HW_LANE_COUNT; lane++) {
-        rmt_transmit(channels[lane], encoder, pixels[lane], sizeof pixels[lane], &tx);
+        if (rmt_transmit(channels[lane], encoder, pixels[lane], sizeof pixels[lane], &tx) == ESP_OK) {
+            rmt_tx_wait_all(channels[lane], pdMS_TO_TICKS(100));
+        }
     }
 }
