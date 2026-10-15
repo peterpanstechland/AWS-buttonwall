@@ -34,7 +34,7 @@ void strip_init(void)
             .gpio_num = HW_LANE_GPIO[lane],
             .clk_src = RMT_CLK_SRC_DEFAULT,
             .resolution_hz = 10000000,
-            .mem_block_symbols = 64,
+            .mem_block_symbols = 48,
             .trans_queue_depth = 4,
         };
         ESP_ERROR_CHECK(rmt_new_tx_channel(&tx, &channels[lane]));
@@ -96,7 +96,7 @@ void strip_show(void)
     rmt_transmit_config_t tx = {.loop_count = 0};
     for (int lane = 0; lane < HW_LANE_COUNT; lane++) {
         if (rmt_transmit(channels[lane], encoder, pixels[lane], sizeof pixels[lane], &tx) == ESP_OK) {
-            rmt_tx_wait_all(channels[lane], pdMS_TO_TICKS(100));
+            rmt_tx_wait_all_done(channels[lane], pdMS_TO_TICKS(100));
         }
     }
 }

@@ -237,7 +237,7 @@ async function connect() {
   setTimeout(() => {
     if (document.getElementById("link").textContent.indexOf("已连接") !== 0) {
       bodyEl.className = "bad";
-      bodyEl.textContent = "串口开了，没有收到 BW PONG。用开发板上 CH340 那个 USB，波特率 115200，并烧录带逐口测试的固件。原生 USB 那只现在没有接 CDC。";
+      bodyEl.textContent = "串口开了，没有收到 BW PONG。选开发板上原生 USB 那只（USB 串行设备），波特率 115200，并确认烧的是带逐口测试的固件。";
     }
   }, 1500);
 }
