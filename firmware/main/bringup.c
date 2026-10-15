@@ -6,13 +6,12 @@
 
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
+#include "driver/usb_serial_jtag.h"
 #include "esp_timer.h"
 
 #include <ctype.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
 #define CHASE_US 100000
 
@@ -157,10 +156,6 @@ static void handle(char *text)
 
 void bringup_init(void)
 {
-    int flags = fcntl(fileno(stdin), F_GETFL, 0);
-    if (flags >= 0) {
-        fcntl(fileno(stdin), F_SETFL, flags | O_NONBLOCK);
-    }
     setvbuf(stdout, NULL, _IONBF, 0);
     lamp_init();
     printf("BW PONG %s\n", HW_REVISION);
@@ -168,8 +163,8 @@ void bringup_init(void)
 
 void bringup_poll(uint64_t now_us)
 {
-    unsigned char ch;
-    while (read(STDIN_FILENO, &ch, 1) == 1) {
+    uint8_t ch;
+    while (usb_serial_jtag_read_bytes(&ch, 1, 0) == 1) {
         if (ch == '\n' || ch == '\r') {
             if (line_len > 0) {
                 line[line_len] = 0;
