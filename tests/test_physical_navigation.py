@@ -135,6 +135,7 @@ class PhysicalNavigationTests(unittest.TestCase):
         self.engine.home()
         self.gesture()
         self.gesture()
+        self.hit("A1")  # Select voice explicitly; default guided selection is random.
         self.gesture()
         self.hit("D4")  # Cognito is an incorrect answer for the voice workflow.
         self.assertEqual(self.engine.state, "RESULT")

@@ -23,3 +23,7 @@ static const char *HW_BUTTON_NAME[HW_BUTTON_COUNT] = {
 static const int HW_BUTTON_LANE[HW_BUTTON_COUNT] = {
     -1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3
 };
+#define HW_MAPPING_CRC 2139165486u
+static const int HW_BUTTON_OFFSET[HW_BUTTON_COUNT] = {
+    -1, 0, 32, 64, 96, 0, 32, 64, 96, 0, 32, 64, 96, 0, 32, 64, 96
+};

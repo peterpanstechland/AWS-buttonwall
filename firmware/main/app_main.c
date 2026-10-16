@@ -1,4 +1,3 @@
-#include "awg1.h"
 #include "bringup.h"
 #include "input_scan.h"
 #include "strip_engine.h"
@@ -21,16 +20,14 @@ void app_main(void)
     input_scan_init();
     strip_init();
     strip_show();
-    uint8_t hello[256];
-    size_t n = awg1_encode(hello, sizeof hello, 0x01, 1, true,
-                           "{\"device_id\":\"wall-mcu-01\",\"proto_major\":1,\"proto_minor\":2}");
-    ESP_LOGI(TAG, "boot dark, hello frame %u bytes, logs stay on UART", (unsigned)n);
+    ESP_LOGI(TAG, "boot dark; BW bench and BW2 game transport on native USB");
     esp_log_level_set("*", ESP_LOG_WARN);
     bringup_init();
     while (true) {
         uint64_t now = esp_timer_get_time();
         input_scan_tick(now);
         bringup_poll(now);
-        vTaskDelay(pdMS_TO_TICKS(1));
+        /* At 100 Hz, pdMS_TO_TICKS(1) is zero and starves IDLE0. */
+        vTaskDelay(1);
     }
 }

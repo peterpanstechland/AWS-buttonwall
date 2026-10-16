@@ -64,6 +64,17 @@ void strip_clear(void)
     memset(pixels, 0, sizeof pixels);
 }
 
+void strip_panel(int button_id, uint8_t r, uint8_t g, uint8_t b)
+{
+    if (button_id <= 0 || button_id >= HW_BUTTON_COUNT) return;
+    int lane = HW_BUTTON_LANE[button_id];
+    int offset = HW_BUTTON_OFFSET[button_id];
+    if (lane < 0 || offset < 0 || offset + HW_PIXELS_PER_PANEL > PIXELS) return;
+    scale(&r); scale(&g); scale(&b);
+    for (int i = offset; i < offset + HW_PIXELS_PER_PANEL; i++)
+        put_pixel(lane, i, r, g, b);
+}
+
 void strip_chase(int lane, int count, uint8_t r, uint8_t g, uint8_t b, int hot)
 {
     if (lane < 0 || lane >= HW_LANE_COUNT || count <= 0) {

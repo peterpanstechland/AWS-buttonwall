@@ -6,6 +6,7 @@ After=local-fs.target
 Type=simple
 User=sunrise
 Group=sunrise
+SupplementaryGroups=dialout
 WorkingDirectory=/opt/aws-wall/current
 Environment=DEVICE_MODE=mock
 Environment=WALL_PORT=8091

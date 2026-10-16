@@ -34,6 +34,7 @@ class Engine:
         self.ui_settings = self.store.ui_settings()
         self.clock_us = clock_us or (lambda: time.monotonic() * 1_000_000)
         self.sim = sim
+        self.bridge = None
         self.cfg = load_game_config()
         self.services, self.by_id, self.by_key = load_services()
         self.missions = {mission["id"]: mission for mission in load_missions()}
@@ -133,6 +134,15 @@ class Engine:
         return max(0, (since + duration * 1000 - self.now() + 999) // 1000)
 
     def tick(self):
+        if self.bridge:
+            self.bridge.poll()
+            if not self.bridge.online or not self.bridge.ready:
+                return
+        self._tick_core()
+        if self.bridge:
+            self.bridge.lights()
+
+    def _tick_core(self):
         if self.handoff_until is not None:
             if self.now() >= self.handoff_until:
                 self.visit_plays = 0
@@ -208,18 +218,20 @@ class Engine:
             self.notice = "ERR_UNSUPPORTED"
 
     def sim_click(self, button_id: int):
-        if not self.sim or not self.mcu:
+        if self.bridge or not self.sim or not self.mcu:
             raise RuntimeError("simulator input is off")
         self.mcu.click(button_id, self.now())
         self.tick()
 
     def sim_level(self, button_id: int, down: bool):
-        if not self.sim or not self.mcu:
+        if self.bridge or not self.sim or not self.mcu:
             raise RuntimeError("simulator input is off")
         self.mcu.set_level(button_id, down, self.now())
         self.tick()
 
     def select_mode(self, mode: str):
+        if self.bridge and not self.bridge.ready:
+            return
         if self.state != "MODE_LOBBY":
             return
         if mode not in {"GUIDED", "FREE", "RUSH60_RANKED", "RUSH60_PRACTICE"}:
@@ -229,6 +241,8 @@ class Engine:
         self._push("game.lobby")
 
     def start(self, mission_id: str | None = None):
+        if self.bridge and not self.bridge.ready:
+            return
         if self.state not in {"MODE_LOBBY", "MISSION_SELECT", "IDLE"} or not self.mode:
             return
         if self.visit_plays >= self.cfg['visitor']['max_plays']:
@@ -650,7 +664,7 @@ class Engine:
                           "action": "none", "label": {"zh": "", "en": ""}, "selected": False,
                           "color": [0, 0, 0], "effect": "off", **(source or {}),
                           "panel_state": self.panels[button["id"]] if self.state == "ACTIVE" else "NAVIGATION" if source else "OFF"})
-        return {"simulated": True, "hardware_applied": False, "brightness_cap": self.cfg["brightness_cap"], "cells": cells,
+        return {"simulated": not bool(self.bridge), "hardware_applied": bool(self.bridge and self.bridge.online and self.bridge.applied and self.bridge.lamps_ok), "brightness_cap": self.cfg["brightness_cap"], "cells": cells,
                 "kiro": {"rgb": False, "lamp": "constant"}}
 
     def _hit(self, payload: dict):
@@ -1055,9 +1069,10 @@ class Engine:
             "achievements": self.achievements,
             "selected": {key: value for key, value in self.selected.items() if value},
             "final_state": self.final_state,
-            "sim_input": self.sim,
+            "sim_input": self.sim and not self.bridge,
             "demo": self.sim,
-            "device_mode": "mock" if self.sim else "serial",
+            "device_mode": "bw_serial" if self.bridge else "mock" if self.sim else "serial",
+            "physical_link": self.bridge.status() if self.bridge else None,
             "state_revision": self.state_revision,
             "server_seq": self.server_seq,
             "done_nodes": sorted(self.done),

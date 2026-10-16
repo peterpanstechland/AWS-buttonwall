@@ -2,6 +2,7 @@
 """Write firmware/main/generated_hw.h from config/hardware.json."""
 
 import json
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +51,14 @@ lines.append("static const int HW_BUTTON_LANE[HW_BUTTON_COUNT] = {")
 lines.append("    " + ", ".join(lanes))
 lines.append("};")
 target = ROOT / "firmware" / "main" / "generated_hw.h"
+mapping = {"buttons": [{k:b[k] for k in ('id','key','slot','gpio')} for b in hardware['buttons']],
+           "lanes": [{k:l[k] for k in ('lane','gpio','slots')} for l in hardware['led']['lanes']],
+           "pixels_per_panel": hardware['led']['pixels_per_panel'], "revision": hardware['revision']}
+crc = zlib.crc32(json.dumps(mapping, ensure_ascii=False, separators=(',', ':'), sort_keys=True).encode()) & 0xffffffff
+lines.append(f'#define HW_MAPPING_CRC {crc}u')
+offsets = {slot:i*hardware['led']['pixels_per_panel'] for lane in hardware['led']['lanes'] for i,slot in enumerate(lane['slots'])}
+lines.extend(['static const int HW_BUTTON_OFFSET[HW_BUTTON_COUNT] = {',
+              '    ' + ', '.join(str(offsets.get(b['slot'], -1)) for b in hardware['buttons']), '};'])
 target.parent.mkdir(parents=True, exist_ok=True)
 target.write_text("\n".join(lines) + "\n", encoding="utf-8")
 print(target)

@@ -74,10 +74,11 @@ class Handler(BaseHTTPRequestHandler):
             self._json(
                 {
                     "ok": True,
-                    "device_online": bool(ENGINE.mcu and ENGINE.mcu.hello_sent),
+                    "device_online": ENGINE.bridge.online if ENGINE.bridge else bool(ENGINE.mcu and ENGINE.mcu.hello_sent),
                     "boot_id": ENGINE.boot_id,
                     "db_ok": True,
-                    "device_mode": "mock" if ENGINE.sim else "serial",
+                    "device_mode": "bw_serial" if ENGINE.bridge else "mock" if ENGINE.sim else "serial",
+                    "physical_link": ENGINE.bridge.status() if ENGINE.bridge else None,
                     "state": ENGINE.state,
                     "state_revision": ENGINE.state_revision,
                 }
@@ -254,13 +255,16 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
 
-def serve(host="127.0.0.1", port=8080, sim=True, db_path=None):
+def serve(host="127.0.0.1", port=8080, sim=True, db_path=None, serial_path=None):
     global ENGINE
     if not sim:
         raise ValueError("The serial MCU transport is not implemented; use DEVICE_MODE=mock.")
     database = Path(db_path).expanduser() if db_path else ROOT / "wall.db"
     database.parent.mkdir(parents=True, exist_ok=True)
     ENGINE = Engine(Store(database), sim=sim)
+    if serial_path:
+        from wall_backend.serial_bridge import BwBridge
+        ENGINE.bridge = BwBridge(ENGINE, serial_path)
     httpd = ThreadingHTTPServer((host, port), Handler)
     def tick_game():
         while True:

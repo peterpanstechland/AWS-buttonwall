@@ -127,6 +127,11 @@ function draw() {
     return;
   }
   $('#sim-open').hidden = !snap.sim_input; $('#demo-badge').hidden = !snap.demo;
+  if(snap.physical_link) {
+    const link=snap.physical_link;
+    $('#connection').textContent=!link.online?say('按键设备未连接','BUTTON DEVICE OFFLINE'):!link.ready?say('请先松开所有按键','RELEASE ALL BUTTONS'):say('实体按键已连接 · 体验模式','BUTTONS CONNECTED · PRACTICE');
+    $('#demo-badge').textContent=say('体验','PRACTICE');
+  }
   document.body.classList.toggle('demo-mode',Boolean(snap.demo));
   $('#sim-open').textContent = say('演示按键','Demo keys');
   document.body.classList.toggle('mouse-testing',Boolean(snap.sim_input));
