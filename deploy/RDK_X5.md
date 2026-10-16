@@ -4,7 +4,7 @@
 
 2026-10-16 部署到 `sunrise@192.168.88.123`（主机名 `booth-03`）。系统 Ubuntu 22.04.5 / aarch64、Python 3.10.12、Chromium 149。RDK 程序仅依赖 Python 标准库；没有部署或刷写 ESP 固件。
 
-- 版本目录：`/opt/aws-wall/releases/20261016-architecture-review`，入口软链接 `/opt/aws-wall/current`。上一版 `20261016-physical-controls` 保留，可回滚原界面和语音；持久数据库未改，本次只更新界面提示和音频资源。
+- 版本目录：`/opt/aws-wall/releases/20261016-bw2-bridge`，入口软链接 `/opt/aws-wall/current`。上一版 `20261016-physical-controls` 保留，可回滚原界面和语音；持久数据库未改，本次只更新界面提示和音频资源。
 - 配置：`/etc/aws-wall.env`，模板 `deploy/aws-wall.env.example`。
 - 持久数据库：`/var/lib/aws-wall/wall.db`，独立于版本目录。
 - 浏览器 profile：`/var/lib/aws-wall-kiosk/chromium`。
@@ -79,3 +79,11 @@ PulseAudio 已检测到 Chromium 音频流。当前仅检测到板载 ES8326 声
 DEMO 页面默认允许直接点击菜单方块，并可从顶栏“测试按键”打开非模态 4×4 服务键面板。Kiro 保留单击、双击、长按两秒的模拟电平行为。正式串口模式不会启用这些模拟入口。页面声明 `google notranslate` 和 `translate="no"`；设备安装 `deploy/chromium-policy.json` 到 `/etc/chromium/policies/managed/aws-wall.json`，通过 `TranslateEnabled=false` 禁用 Chromium 翻译提示。用户自己的浏览器由网页标记阻止本页自动翻译，不修改其全局设置。
 
 
+
+## BW2 实机刷写与启用（2026-10-16）
+
+ESP32-S3（MAC `84:c7:bb:79:bf:94`、16 MB Flash、8 MB PSRAM）已刷写 BW2 统一固件，三个写入区域均通过 esptool 数据校验。应用 SHA-256：`beb747c0d5668a746741f38275435438a77a2b53534d37d255b31d1603615f9c`。刷写前完整 16 MB Flash 保存在 `/home/sunrise/aws-wall-backup-fw-20261016/esp32-before-bw2.bin`，SHA-256：`0401b3ce599ed08377b581f7eb0b05ddf19791eb0295a9348f2b2742d59b0e2a`。同目录保存切换前的环境配置。
+
+`/etc/aws-wall.env` 当前为 `DEVICE_MODE=bw_serial`，端口 `/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_84:C7:BB:79:BF:94-if00`。后端服务已加入 dialout 附加组。实体模式关闭鼠标模拟入口，使用真实按键；如需恢复鼠标测试，将 DEVICE_MODE 改回 mock 后重启后端。
+
+真实 USB 验证通过：15 秒连续 149 个状态包、CRC 匹配、完整灯效帧确认、按钮灯初始化成功；未发现 task_wdt 报警。故意停止心跳 2.6 秒后收到固件 WATCHDOG 退出确认。服务重启后 BW2 在线且 ready。以上不代替所有物理槽位、颜色和长时间运行的现场验收。仍是主机计时体验模式，不入正式排行榜。
