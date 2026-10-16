@@ -69,6 +69,22 @@ class VirtualMcu:
     def now(self) -> int:
         return int(self.clock_us())
 
+    def reset_session(self):
+        """Cancel the old game while preserving physical keys and gesture debounce."""
+        self.session_id = None
+        self.round_id = None
+        self.epoch = 0
+        self.scoring_open = False
+        self.go_us = None
+        self.deadline_us = None
+        self.countdown_marks = []
+        self.expired_sent = False
+        self.drained_sent = False
+        self.hits = []
+        self.acked.clear()
+        game_events = {ROUND_ARMED, STEP_ARMED, COUNTDOWN_EVENT, TIMER_EVENT, INPUT_DRAINED}
+        self.out = [frame for frame in self.out if frame.msg_type not in game_events]
+
     def hello(self):
         if self.hello_sent:
             return
@@ -284,7 +300,9 @@ class VirtualMcu:
             if label == "GO":
                 self._open_gate(at, getattr(self, "_pending_game_us", 0))
             else:
-                self._emit(COUNTDOWN_EVENT, {"event": label, "t_us": at}, ack=True)
+                self._emit(COUNTDOWN_EVENT, {"session_id": self.session_id,
+                                           "round_id": self.round_id,
+                                           "event": label, "t_us": at}, ack=True)
         self.countdown_marks = pending
         if self.scoring_open and self.deadline_us and now >= self.deadline_us and not self.expired_sent:
             self.expired_sent = True

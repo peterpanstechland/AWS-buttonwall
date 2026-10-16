@@ -58,6 +58,14 @@
     "cognito": {
       "sourcePath": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_Amazon-Cognito_64.svg",
       "sha256": "cf9c55baa325d5d07aea0054115b1b24d68c1d7e046a4f8a360ccdefbba507e9"
+    },
+    "ec2": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_Amazon-EC2_64.svg",
+      "sha256": "5a7a0cef7a9f44ccdd544564ce9076abec3024090be0d6454504c49d149ce9ec"
+    },
+    "iot-core": {
+      "sourcePath": "Architecture-Service-Icons_07312026/Arch_Internet-of-Things/64/Arch_AWS-IoT-Core_64.svg",
+      "sha256": "65a17681119d789d999d7199261cb3ac4c80fdafad21e8dbac499c103f4bcd16"
     }
   }
 }

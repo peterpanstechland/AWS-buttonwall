@@ -1,26 +1,38 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" translate="no" class="notranslate">
 <head>
   <meta charset="utf-8">
+  <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffd900">
   <title>Bridge with Signal · 架构构建站</title>
   <link rel="stylesheet" href="/app.css">
   <link rel="stylesheet" href="/kiosk.css">
   <link rel="stylesheet" href="/signal.css">
+  <link rel="stylesheet" href="/attract-demo.css">
+  <link rel="stylesheet" href="/guidance.css">
+  <link rel="stylesheet" href="/onboarding.css">
+  <link rel="stylesheet" href="/button-navigation.css">
+  <link rel="stylesheet" href="/start-visual.css">
 </head>
 <body>
   <canvas id="energy-canvas" aria-hidden="true"></canvas>
   <div class="ambient" aria-hidden="true"></div>
   <header class="app-header">
     <a class="brand" href="/" aria-label="Bridge with Signal 架构构建站"><img class="brand-logo" src="/branding/kiro.svg" width="34" height="34" alt="Kiro"><span>BRIDGE WITH SIGNAL<span class="brand-sub">COMMUNITY DAY / 架构构建站</span></span></a>
-    <div class="header-right"><span class="aws-china-logo"><img src="/branding/aws-china-dark.png" width="2470" height="2470" alt="亚马逊云科技"></span><span id="connection" class="connection">连接中</span><span id="demo-badge" class="demo-badge" hidden>DEMO</span><button id="sim-open" class="text-button" hidden>模拟输入</button><button id="motion" class="icon-button" aria-label="减少动态效果" aria-pressed="false">◌</button><button id="lang" class="text-button" aria-label="切换到 English" title="切换到 English"><span lang="zh-CN" class="current">中文</span><span aria-hidden="true">/</span><span lang="en">EN</span></button></div>
+    <div class="header-right"><span class="aws-china-logo"><img src="/branding/aws-china-dark.png" width="2470" height="2470" alt="亚马逊云科技"></span><span id="connection" class="connection">连接中</span><span id="demo-badge" class="demo-badge" hidden>DEMO</span><span id="physical-header">17 键 · 实体操作</span><button id="sim-open" class="text-button" hidden>模拟输入</button><button id="motion" class="icon-button" aria-label="减少动态效果" aria-pressed="false">◌</button><button id="lang" class="text-button" aria-label="切换到 English" title="切换到 English"><span lang="zh-CN" class="current">中文</span><span aria-hidden="true">/</span><span lang="en">EN</span></button></div>
   </header>
   <main id="screen"><div class="loading">正在连接构建引擎…</div></main>
   <footer class="kiro-dock">
     <div class="dock-brand"><span>CONNECT / TRANSMIT / CROSS</span><small id="footnote">本地教学模拟</small><span id="footer-status" hidden></span></div>
     <div id="kiro-dock-slot"><button id="kiro-control" aria-label="Kiro 按键" class="kiro-control"><span class="kiro-ring"><img src="/branding/kiro.svg" width="34" height="34" alt=""></span><strong>KIRO</strong><span class="kiro-start-copy"><small>KIRO / START</small><strong id="kiro-start-title">开始构建</strong></span><span class="kiro-start-arrow" aria-hidden="true">→</span></button></div>
-    <div id="kiro-guide" class="kiro-guide" aria-live="polite"></div>
+    <section id="kiro-guide" class="interaction-guide" aria-live="polite" aria-label="操作提示"></section>
+    <div class="guide-tools">
+      <div id="physical-console-status" class="physical-console-status"></div>
+      <div class="voice-controls"><button id="voice-toggle" type="button" aria-pressed="true">语音开</button><button id="voice-replay" type="button">重听</button></div>
+      <span id="voice-status" role="status"></span>
+      <div class="home-row"><span id="idle-return" aria-live="off"></span><button id="home" type="button" hidden>回首页</button></div>
+    </div>
   </footer>
   <div id="toast" role="status" aria-live="polite"></div>
   <dialog id="simulator"><div class="drawer-heading"><div><span class="eyebrow">DEMO INPUT</span><h2>模拟实体按键</h2></div><button id="sim-close" class="text-button">关闭 ×</button></div><p id="sim-help">这些按钮只用于本机演示，正式现场使用实体按钮墙。</p><div id="sim-buttons"></div></dialog>

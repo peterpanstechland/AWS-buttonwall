@@ -1,7 +1,7 @@
 {
   "scope": {
-    "zh": "教学能力流；非 AWS 部署拓扑。¹ 表示经业务编排返回或写入，完整返回路径省略。",
-    "en": "Teaching capability flow, not AWS deployment topology. ¹ denotes a return or write via application orchestration; full return paths are omitted."
+    "zh": "服务交互教学示意；点亮顺序不是部署依赖。权限、网络和错误处理未展开。",
+    "en": "Teaching service interactions; activation order is not deployment dependency. IAM, networking and failure handling are omitted."
   },
   "missions": {
     "M01_VOICE": {
@@ -29,64 +29,79 @@
       },
       "edges": [
         {
-          "id": "M01_VOICE-e0",
           "source": "input",
           "target": "speech_to_text",
           "label": {
-            "zh": "音频",
-            "en": "Audio"
+            "zh": "音频 / 转写返回",
+            "en": "Audio / transcript"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M01_VOICE-e0"
         },
         {
-          "id": "M01_VOICE-e1",
-          "source": "speech_to_text",
+          "source": "input",
           "target": "dialogue_orchestrator",
           "label": {
-            "zh": "转写文本",
-            "en": "Transcript"
+            "zh": "客户端提交文本",
+            "en": "Client submits text"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "top",
+          "requires": [
+            "speech_to_text"
+          ],
+          "id": "M01_VOICE-e1"
         },
         {
-          "id": "M01_VOICE-e2",
           "source": "dialogue_orchestrator",
           "target": "model_inference",
           "label": {
-            "zh": "提示词",
-            "en": "Prompt"
+            "zh": "Converse / 回答",
+            "en": "Converse / reply"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M01_VOICE-e2"
         },
         {
-          "id": "M01_VOICE-e3",
-          "source": "model_inference",
+          "source": "dialogue_orchestrator",
           "target": "text_to_speech",
           "label": {
-            "zh": "生成回答",
-            "en": "Reply"
+            "zh": "合成 / 音频返回",
+            "en": "Synthesize / audio"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "route": "top",
+          "requires": [
+            "model_inference"
+          ],
+          "id": "M01_VOICE-e3"
         },
         {
-          "id": "M01_VOICE-e4",
-          "source": "text_to_speech",
+          "source": "dialogue_orchestrator",
           "target": "output",
           "label": {
-            "zh": "语音",
-            "en": "Speech"
+            "zh": "返回合成语音",
+            "en": "Return speech"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "bottom",
+          "requires": [
+            "text_to_speech"
+          ],
+          "id": "M01_VOICE-e4"
         },
         {
-          "id": "M01_VOICE-e5",
           "source": "dialogue_orchestrator",
           "target": "observe",
           "label": {
-            "zh": "遥测",
-            "en": "Telemetry"
+            "zh": "日志 / 指标",
+            "en": "Logs / metrics"
           },
-          "kind": "observe"
+          "kind": "observe",
+          "id": "M01_VOICE-e5"
         }
       ]
     },
@@ -115,64 +130,69 @@
       },
       "edges": [
         {
-          "id": "M02_VISION-e0",
           "source": "input",
           "target": "image_bucket",
           "label": {
             "zh": "上传",
             "en": "Upload"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M02_VISION-e0"
         },
         {
-          "id": "M02_VISION-e1",
           "source": "image_bucket",
           "target": "vision_trigger",
           "label": {
-            "zh": "对象事件",
-            "en": "Object event"
+            "zh": "ObjectCreated",
+            "en": "ObjectCreated"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M02_VISION-e1"
         },
         {
-          "id": "M02_VISION-e2",
           "source": "vision_trigger",
           "target": "vision_model",
           "label": {
-            "zh": "调用识别",
-            "en": "Analyze"
+            "zh": "DetectLabels / 标签",
+            "en": "DetectLabels / labels"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M02_VISION-e2"
         },
         {
-          "id": "M02_VISION-e3",
-          "source": "vision_model",
+          "source": "vision_trigger",
           "target": "vision_table",
           "label": {
-            "zh": "识别结果¹",
-            "en": "Result¹"
+            "zh": "PutItem",
+            "en": "PutItem"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "top",
+          "requires": [
+            "vision_model"
+          ],
+          "id": "M02_VISION-e3"
         },
         {
-          "id": "M02_VISION-e4",
           "source": "vision_table",
           "target": "output",
           "label": {
-            "zh": "持久化",
-            "en": "Persisted"
+            "zh": "结果已保存",
+            "en": "Result stored"
           },
-          "kind": "data"
+          "kind": "outcome",
+          "id": "M02_VISION-e4"
         },
         {
-          "id": "M02_VISION-e5",
           "source": "vision_trigger",
           "target": "observe",
           "label": {
-            "zh": "遥测",
-            "en": "Telemetry"
+            "zh": "日志 / 指标",
+            "en": "Logs / metrics"
           },
-          "kind": "observe"
+          "kind": "observe",
+          "id": "M02_VISION-e5"
         }
       ]
     },
@@ -277,74 +297,84 @@
       },
       "edges": [
         {
-          "id": "M04_AGENT-e0",
           "source": "input",
           "target": "agent_api",
           "label": {
             "zh": "请求",
             "en": "Request"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M04_AGENT-e0"
         },
         {
-          "id": "M04_AGENT-e1",
           "source": "agent_api",
           "target": "agent_front",
           "label": {
-            "zh": "调用",
-            "en": "Invoke"
+            "zh": "调用 / 返回",
+            "en": "Invoke / return"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M04_AGENT-e1"
         },
         {
-          "id": "M04_AGENT-e2",
           "source": "agent_front",
           "target": "agent_runtime",
           "label": {
-            "zh": "智能体请求",
-            "en": "Agent request"
+            "zh": "InvokeAgentRuntime",
+            "en": "InvokeAgentRuntime"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M04_AGENT-e2"
         },
         {
-          "id": "M04_AGENT-e3",
           "source": "agent_runtime",
           "target": "agent_model",
           "label": {
-            "zh": "模型调用",
-            "en": "Inference"
+            "zh": "代码调用 / 返回",
+            "en": "Code invokes / reply"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M04_AGENT-e3"
         },
         {
-          "id": "M04_AGENT-e4",
-          "source": "agent_model",
+          "source": "agent_api",
           "target": "output",
           "label": {
-            "zh": "回答¹",
-            "en": "Reply¹"
+            "zh": "经 Lambda 返回",
+            "en": "Reply via Lambda"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "top",
+          "requires": [
+            "agent_model",
+            "agent_runtime",
+            "agent_front"
+          ],
+          "id": "M04_AGENT-e4"
         },
         {
-          "id": "M04_AGENT-e5",
           "source": "agent_runtime",
           "target": "agent_memory",
           "label": {
-            "zh": "会话读写",
-            "en": "Memory"
+            "zh": "代码读写会话",
+            "en": "Code reads / writes"
           },
-          "kind": "side"
+          "kind": "side",
+          "bidirectional": true,
+          "id": "M04_AGENT-e5"
         },
         {
-          "id": "M04_AGENT-e6",
           "source": "agent_front",
           "target": "observe",
           "label": {
-            "zh": "遥测",
-            "en": "Telemetry"
+            "zh": "日志 / 指标",
+            "en": "Logs / metrics"
           },
-          "kind": "observe"
+          "kind": "observe",
+          "id": "M04_AGENT-e6"
         }
       ]
     },
@@ -377,84 +407,104 @@
       },
       "edges": [
         {
-          "id": "M05_SERVERLESS_WEB-e0",
           "source": "input",
-          "target": "site_bucket",
-          "label": {
-            "zh": "资源来源",
-            "en": "Asset source"
-          },
-          "kind": "preparation"
-        },
-        {
-          "id": "M05_SERVERLESS_WEB-e1",
-          "source": "site_bucket",
           "target": "site_cdn",
           "label": {
-            "zh": "静态资源",
-            "en": "Static assets"
+            "zh": "页面请求",
+            "en": "Page request"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "top",
+          "id": "M05_SERVERLESS_WEB-e0"
         },
         {
-          "id": "M05_SERVERLESS_WEB-e2",
+          "source": "site_cdn",
+          "target": "site_bucket",
+          "label": {
+            "zh": "缓存未命中 / 回源",
+            "en": "Cache miss / origin"
+          },
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M05_SERVERLESS_WEB-e1"
+        },
+        {
           "source": "site_cdn",
           "target": "output",
           "label": {
-            "zh": "页面",
-            "en": "Page"
+            "zh": "页面返回",
+            "en": "Page response"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M05_SERVERLESS_WEB-e2"
         },
         {
-          "id": "M05_SERVERLESS_WEB-e3",
           "source": "input",
           "target": "web_api",
           "label": {
-            "zh": "API 请求",
+            "zh": "API 请求 / 令牌",
             "en": "API request"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M05_SERVERLESS_WEB-e3"
         },
         {
-          "id": "M05_SERVERLESS_WEB-e4",
           "source": "web_api",
           "target": "web_handler",
           "label": {
-            "zh": "调用",
-            "en": "Invoke"
+            "zh": "调用 / 返回",
+            "en": "Invoke / return"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M05_SERVERLESS_WEB-e4"
         },
         {
-          "id": "M05_SERVERLESS_WEB-e5",
           "source": "web_handler",
           "target": "web_table",
           "label": {
-            "zh": "读写",
-            "en": "Read / write"
+            "zh": "读写 / 返回",
+            "en": "Read-write / return"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M05_SERVERLESS_WEB-e5"
         },
         {
-          "id": "M05_SERVERLESS_WEB-e6",
-          "source": "web_table",
+          "source": "web_api",
           "target": "output",
           "label": {
-            "zh": "业务数据¹",
-            "en": "App data¹"
+            "zh": "经 Lambda 返回数据",
+            "en": "Data via Lambda"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "bottom",
+          "requires": [
+            "web_handler",
+            "web_table"
+          ],
+          "id": "M05_SERVERLESS_WEB-e6"
         },
         {
-          "id": "M05_SERVERLESS_WEB-e7",
-          "source": "web_api",
+          "source": "web_auth",
+          "target": "web_api",
+          "label": {
+            "zh": "用户池授权器配置",
+            "en": "User-pool authorizer"
+          },
+          "kind": "control",
+          "id": "M05_SERVERLESS_WEB-e7"
+        },
+        {
+          "source": "input",
           "target": "web_auth",
           "label": {
-            "zh": "身份校验",
-            "en": "Identity"
+            "zh": "登录 / 令牌",
+            "en": "Sign-in / token"
           },
-          "kind": "control"
+          "kind": "control",
+          "bidirectional": true,
+          "id": "M05_SERVERLESS_WEB-e8"
         }
       ]
     },
@@ -487,84 +537,104 @@
       },
       "edges": [
         {
-          "id": "M09_PROTECTED_WEB-e0",
           "source": "input",
-          "target": "site_bucket",
-          "label": {
-            "zh": "资源来源",
-            "en": "Asset source"
-          },
-          "kind": "preparation"
-        },
-        {
-          "id": "M09_PROTECTED_WEB-e1",
-          "source": "site_bucket",
           "target": "site_cdn",
           "label": {
-            "zh": "静态资源",
-            "en": "Static assets"
+            "zh": "页面请求",
+            "en": "Page request"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "top",
+          "id": "M09_PROTECTED_WEB-e0"
         },
         {
-          "id": "M09_PROTECTED_WEB-e2",
+          "source": "site_cdn",
+          "target": "site_bucket",
+          "label": {
+            "zh": "缓存未命中 / 回源",
+            "en": "Cache miss / origin"
+          },
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M09_PROTECTED_WEB-e1"
+        },
+        {
           "source": "site_cdn",
           "target": "output",
           "label": {
-            "zh": "页面",
-            "en": "Page"
+            "zh": "页面返回",
+            "en": "Page response"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M09_PROTECTED_WEB-e2"
         },
         {
-          "id": "M09_PROTECTED_WEB-e3",
           "source": "input",
           "target": "web_api",
           "label": {
-            "zh": "API 请求",
-            "en": "API request"
+            "zh": "API 请求 / 令牌",
+            "en": "API request / token"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M09_PROTECTED_WEB-e3"
         },
         {
-          "id": "M09_PROTECTED_WEB-e4",
           "source": "web_api",
           "target": "web_handler",
           "label": {
-            "zh": "调用",
-            "en": "Invoke"
+            "zh": "调用 / 返回",
+            "en": "Invoke / return"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M09_PROTECTED_WEB-e4"
         },
         {
-          "id": "M09_PROTECTED_WEB-e5",
           "source": "web_handler",
           "target": "web_table",
           "label": {
-            "zh": "读写",
-            "en": "Read / write"
+            "zh": "读写 / 返回",
+            "en": "Read-write / return"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M09_PROTECTED_WEB-e5"
         },
         {
-          "id": "M09_PROTECTED_WEB-e6",
-          "source": "web_table",
+          "source": "web_api",
           "target": "output",
           "label": {
-            "zh": "业务数据¹",
-            "en": "App data¹"
+            "zh": "经 Lambda 返回数据",
+            "en": "Data via Lambda"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "bottom",
+          "requires": [
+            "web_handler",
+            "web_table"
+          ],
+          "id": "M09_PROTECTED_WEB-e6"
         },
         {
-          "id": "M09_PROTECTED_WEB-e7",
-          "source": "web_api",
+          "source": "web_auth",
+          "target": "web_api",
+          "label": {
+            "zh": "用户池授权器配置",
+            "en": "User-pool authorizer"
+          },
+          "kind": "control",
+          "id": "M09_PROTECTED_WEB-e7"
+        },
+        {
+          "source": "input",
           "target": "web_auth",
           "label": {
-            "zh": "身份校验",
-            "en": "Identity"
+            "zh": "登录 / 令牌",
+            "en": "Sign-in / token"
           },
-          "kind": "control"
+          "kind": "control",
+          "bidirectional": true,
+          "id": "M09_PROTECTED_WEB-e8"
         }
       ]
     },
@@ -589,64 +659,66 @@
       },
       "edges": [
         {
-          "id": "M06_CLASSIC_WEB-e0",
           "source": "input",
           "target": "app_server",
           "label": {
             "zh": "应用请求",
             "en": "App request"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M06_CLASSIC_WEB-e0"
         },
         {
-          "id": "M06_CLASSIC_WEB-e1",
           "source": "app_server",
           "target": "output",
           "label": {
-            "zh": "动态页面",
-            "en": "Dynamic page"
+            "zh": "动态响应",
+            "en": "App response"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M06_CLASSIC_WEB-e1"
         },
         {
-          "id": "M06_CLASSIC_WEB-e2",
           "source": "input",
-          "target": "asset_bucket",
-          "label": {
-            "zh": "资源来源",
-            "en": "Asset source"
-          },
-          "kind": "preparation"
-        },
-        {
-          "id": "M06_CLASSIC_WEB-e3",
-          "source": "asset_bucket",
           "target": "asset_cdn",
           "label": {
-            "zh": "静态资源",
-            "en": "Static assets"
+            "zh": "静态请求",
+            "en": "Asset request"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "bottom",
+          "id": "M06_CLASSIC_WEB-e2"
         },
         {
-          "id": "M06_CLASSIC_WEB-e4",
+          "source": "asset_cdn",
+          "target": "asset_bucket",
+          "label": {
+            "zh": "缓存未命中 / 回源",
+            "en": "Cache miss / origin"
+          },
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M06_CLASSIC_WEB-e3"
+        },
+        {
           "source": "asset_cdn",
           "target": "output",
           "label": {
-            "zh": "内容分发",
-            "en": "Content"
+            "zh": "静态内容",
+            "en": "Static content"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M06_CLASSIC_WEB-e4"
         },
         {
-          "id": "M06_CLASSIC_WEB-e5",
           "source": "app_server",
           "target": "observe",
           "label": {
-            "zh": "遥测",
-            "en": "Telemetry"
+            "zh": "指标 / 代理日志",
+            "en": "Metrics / agent logs"
           },
-          "kind": "observe"
+          "kind": "observe",
+          "id": "M06_CLASSIC_WEB-e5"
         }
       ]
     },
@@ -713,8 +785,8 @@
           "source": "job_queue",
           "target": "worker_lambda",
           "label": {
-            "zh": "消费",
-            "en": "Consume"
+            "zh": "事件源映射轮询",
+            "en": "ESM polls / invokes"
           },
           "kind": "data"
         },
@@ -733,10 +805,10 @@
           "source": "job_table",
           "target": "output",
           "label": {
-            "zh": "持久化",
-            "en": "Persisted"
+            "zh": "异步结果已保存",
+            "en": "Async result stored"
           },
-          "kind": "data"
+          "kind": "outcome"
         },
         {
           "id": "M07_EVENT_DRIVEN-e6",
@@ -775,74 +847,288 @@
       },
       "edges": [
         {
-          "id": "M08_ML-e0",
-          "source": "input",
-          "target": "dataset",
-          "label": {
-            "zh": "训练数据",
-            "en": "Dataset"
-          },
-          "kind": "preparation"
-        },
-        {
-          "id": "M08_ML-e1",
           "source": "dataset",
           "target": "model_host",
           "label": {
-            "zh": "模型准备",
-            "en": "Model preparation"
+            "zh": "部署：模型制品",
+            "en": "Deploy: model artifacts"
           },
-          "kind": "preparation"
+          "kind": "preparation",
+          "id": "M08_ML-e0"
         },
         {
-          "id": "M08_ML-e2",
           "source": "input",
           "target": "infer_api",
           "label": {
             "zh": "推理请求",
             "en": "Inference request"
           },
-          "kind": "data"
+          "kind": "data",
+          "id": "M08_ML-e1"
         },
         {
-          "id": "M08_ML-e3",
           "source": "infer_api",
           "target": "infer_handler",
           "label": {
-            "zh": "调用",
-            "en": "Invoke"
+            "zh": "调用 / 返回",
+            "en": "Invoke / return"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M08_ML-e2"
         },
         {
-          "id": "M08_ML-e4",
           "source": "infer_handler",
           "target": "model_host",
           "label": {
-            "zh": "推理",
-            "en": "Inference"
+            "zh": "InvokeEndpoint / 预测",
+            "en": "InvokeEndpoint / prediction"
           },
-          "kind": "data"
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M08_ML-e3"
         },
         {
-          "id": "M08_ML-e5",
-          "source": "model_host",
+          "source": "infer_api",
           "target": "output",
           "label": {
-            "zh": "预测¹",
-            "en": "Prediction¹"
+            "zh": "经 Lambda 返回预测",
+            "en": "Prediction via Lambda"
           },
-          "kind": "data"
+          "kind": "data",
+          "route": "bottom",
+          "requires": [
+            "model_host",
+            "infer_handler"
+          ],
+          "id": "M08_ML-e4"
         },
         {
-          "id": "M08_ML-e6",
           "source": "infer_handler",
           "target": "observe",
           "label": {
-            "zh": "遥测",
-            "en": "Telemetry"
+            "zh": "日志 / 指标",
+            "en": "Logs / metrics"
           },
-          "kind": "observe"
+          "kind": "observe",
+          "id": "M08_ML-e5"
+        }
+      ]
+    },
+    "M10_IOT_DIRECT": {
+      "positions": {
+        "m10_iot_direct_0": [
+          260.0,
+          220
+        ],
+        "m10_iot_direct_1": [
+          890.0,
+          220
+        ]
+      },
+      "edges": [
+        {
+          "source": "input",
+          "target": "m10_iot_direct_0",
+          "label": {
+            "zh": "MQTT 消息",
+            "en": "MQTT message"
+          },
+          "kind": "data",
+          "id": "M10_IOT_DIRECT-e0"
+        },
+        {
+          "source": "m10_iot_direct_0",
+          "target": "m10_iot_direct_1",
+          "label": {
+            "zh": "规则动作写表",
+            "en": "Rule action writes"
+          },
+          "kind": "data",
+          "id": "M10_IOT_DIRECT-e1"
+        },
+        {
+          "source": "m10_iot_direct_1",
+          "target": "output",
+          "label": {
+            "zh": "读数已保存",
+            "en": "Readings stored"
+          },
+          "kind": "outcome",
+          "id": "M10_IOT_DIRECT-e2"
+        }
+      ]
+    },
+    "M11_ASYNC_API": {
+      "positions": {
+        "m11_async_api_0": [
+          260.0,
+          220
+        ],
+        "m11_async_api_1": [
+          890.0,
+          220
+        ]
+      },
+      "edges": [
+        {
+          "source": "input",
+          "target": "m11_async_api_0",
+          "label": {
+            "zh": "REST 请求",
+            "en": "REST request"
+          },
+          "kind": "data",
+          "id": "M11_ASYNC_API-e0"
+        },
+        {
+          "source": "m11_async_api_0",
+          "target": "m11_async_api_1",
+          "label": {
+            "zh": "SendMessage / 返回",
+            "en": "SendMessage / return"
+          },
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M11_ASYNC_API-e1"
+        },
+        {
+          "source": "m11_async_api_0",
+          "target": "output",
+          "label": {
+            "zh": "入队确认，非完成",
+            "en": "Accepted, not completed"
+          },
+          "kind": "data",
+          "route": "top",
+          "requires": [
+            "m11_async_api_1"
+          ],
+          "id": "M11_ASYNC_API-e2"
+        }
+      ]
+    },
+    "M12_STATIC_SITE": {
+      "positions": {
+        "m12_static_site_0": [
+          260.0,
+          220
+        ],
+        "m12_static_site_1": [
+          890.0,
+          220
+        ]
+      },
+      "edges": [
+        {
+          "source": "input",
+          "target": "m12_static_site_1",
+          "label": {
+            "zh": "HTTPS 请求",
+            "en": "HTTPS request"
+          },
+          "kind": "data",
+          "route": "top",
+          "id": "M12_STATIC_SITE-e0"
+        },
+        {
+          "source": "m12_static_site_1",
+          "target": "m12_static_site_0",
+          "label": {
+            "zh": "未命中：OAC 回源",
+            "en": "Cache miss: OAC origin"
+          },
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M12_STATIC_SITE-e1"
+        },
+        {
+          "source": "m12_static_site_1",
+          "target": "output",
+          "label": {
+            "zh": "缓存 / 源响应",
+            "en": "Cached / origin response"
+          },
+          "kind": "data",
+          "id": "M12_STATIC_SITE-e2"
+        }
+      ]
+    },
+    "M13_IMAGE_TAGS": {
+      "positions": {
+        "m13_image_tags_0": [
+          260.0,
+          220
+        ],
+        "m13_image_tags_1": [
+          575.0,
+          220
+        ],
+        "m13_image_tags_2": [
+          890.0,
+          220
+        ]
+      },
+      "edges": [
+        {
+          "source": "input",
+          "target": "m13_image_tags_0",
+          "label": {
+            "zh": "上传",
+            "en": "Upload"
+          },
+          "kind": "data",
+          "id": "M13_IMAGE_TAGS-e0"
+        },
+        {
+          "source": "m13_image_tags_0",
+          "target": "m13_image_tags_1",
+          "label": {
+            "zh": "ObjectCreated",
+            "en": "ObjectCreated"
+          },
+          "kind": "data",
+          "id": "M13_IMAGE_TAGS-e1"
+        },
+        {
+          "source": "m13_image_tags_1",
+          "target": "m13_image_tags_2",
+          "label": {
+            "zh": "DetectLabels / 标签",
+            "en": "DetectLabels / labels"
+          },
+          "kind": "data",
+          "bidirectional": true,
+          "id": "M13_IMAGE_TAGS-e2"
+        },
+        {
+          "source": "m13_image_tags_1",
+          "target": "m13_image_tags_0",
+          "label": {
+            "zh": "PutObjectTagging",
+            "en": "PutObjectTagging"
+          },
+          "kind": "data",
+          "route": "top",
+          "requires": [
+            "m13_image_tags_2"
+          ],
+          "id": "M13_IMAGE_TAGS-e3"
+        },
+        {
+          "source": "m13_image_tags_0",
+          "target": "output",
+          "label": {
+            "zh": "标签已写回",
+            "en": "Tags saved"
+          },
+          "kind": "outcome",
+          "route": "bottom",
+          "requires": [
+            "m13_image_tags_1",
+            "m13_image_tags_2"
+          ],
+          "id": "M13_IMAGE_TAGS-e4"
         }
       ]
     }

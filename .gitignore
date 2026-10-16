@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
+.voice-deps/
+.voice-build/
 wall.db
 firmware/build/
 firmware/sdkconfig

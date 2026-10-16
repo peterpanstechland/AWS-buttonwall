@@ -1,12 +1,19 @@
 [Unit]
 Description=AWS wall game backend
-After=multi-user.target
+After=local-fs.target
 
 [Service]
 Type=simple
+User=sunrise
+Group=sunrise
 WorkingDirectory=/opt/aws-wall/current
 Environment=DEVICE_MODE=mock
 Environment=WALL_PORT=8091
+Environment=WALL_HOST=0.0.0.0
+Environment=WALL_DB_PATH=/var/lib/aws-wall/wall.db
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/aws-wall.env
+StateDirectory=aws-wall
 ExecStart=/usr/bin/python3 -m wall_backend
 Restart=always
 RestartSec=2

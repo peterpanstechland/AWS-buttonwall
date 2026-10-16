@@ -9,7 +9,7 @@ from pathlib import Path
 
 from reference.rules import required_done
 
-CONTENT = json.loads((Path(__file__).resolve().parents[1] / "config/workflows.json").read_text())
+CONTENT = json.loads((Path(__file__).resolve().parents[1] / "config/workflows.json").read_text(encoding="utf-8"))
 
 
 def project_graph(mission, done, selected=None, hide_answers=False, failure=None):
@@ -29,6 +29,8 @@ def project_graph(mission, done, selected=None, hide_answers=False, failure=None
             if node["node_id"] in lit and set(node["depends_on"]) <= connected:
                 connected.add(node["node_id"])
     complete = required_done(mission, connected)
+    if selected is not None and Counter(selected) - Counter(n['service'] for n in mission['nodes']):
+        complete = False
     nodes = []
     for node in mission["nodes"]:
         nid = node["node_id"]
@@ -37,10 +39,14 @@ def project_graph(mission, done, selected=None, hide_answers=False, failure=None
         nodes.append({**node, "service": None if hide_answers and nid not in lit else node["service"],
                       "state": state, "x": layout["positions"][nid][0], "y": layout["positions"][nid][1]})
     active = connected | {"input"} | ({"output"} if complete else set())
-    edges = [{**edge, "state": "live" if {edge["source"], edge["target"]} <= active else "waiting"}
+    edges = [{**edge, "state": "live" if {edge["source"], edge["target"], *edge.get('requires', [])} <= active else "waiting"}
              for edge in layout["edges"]]
+    if hide_answers:
+        for edge in edges:
+            if edge['state'] != 'live':
+                edge['label'] = {'zh': '待接通', 'en': 'Pending'}
     return {"id": mission["id"], "title": mission["title"], "io": mission["io"], "nodes": nodes,
-            "edges": edges, "scope": CONTENT["scope"], "teaching_points": mission["teaching_points"],
+            "edges": edges, "scope": CONTENT["scope"], "architecture_note": mission.get('scope'), "sources": mission.get('sources', []), "teaching_points": mission["teaching_points"],
             "status": "collapsed" if failure else "complete" if complete else "building",
             "required_count": sum(n["required"] for n in nodes),
             "connected_count": sum(n["required"] and n["node_id"] in connected for n in nodes)}

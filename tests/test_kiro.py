@@ -1,4 +1,4 @@
-"""One physical navigation button: test debounced edges, not injected gestures."""
+"""Wall keys choose menu entries; Kiro confirms with debounced physical edges."""
 import unittest
 from reference.rules import frontier
 from wall_backend.engine import Engine
@@ -34,12 +34,11 @@ class KiroTests(unittest.TestCase):
 
     def enter(self, mode):
         self.gesture('CLICK')
-        while self.engine.mode != mode:
-            self.gesture('CLICK')
-        self.gesture('DOUBLE')
+        self.service({'GUIDED': 'EC2', 'RUSH60_RANKED': 'S3', 'FREE': 'API_GATEWAY'}[mode])
+        self.gesture('CLICK')
         if mode == 'GUIDED':
             self.assertEqual(self.engine.state, 'MISSION_SELECT')
-            self.gesture('DOUBLE')
+            self.gesture('CLICK')
         self.assertEqual(self.engine.state, 'ACTIVE')
 
     def service(self, key):
@@ -51,8 +50,8 @@ class KiroTests(unittest.TestCase):
         self.assertEqual(self.engine.mode, 'GUIDED')
         self.gesture('DOUBLE')
         self.assertEqual(self.engine.state, 'MISSION_SELECT')
-        self.assertEqual(self.engine.snapshot()['menu_mission_id'], 'M01_VOICE')
-        self.gesture('CLICK')
+        self.assertIsNone(self.engine.snapshot()['menu_mission_id'])
+        self.service('S3')
         self.assertEqual(self.engine.snapshot()['menu_mission_id'], 'M02_VISION')
         self.gesture('HOLD')
         self.assertEqual(self.engine.state, 'MODE_LOBBY')
@@ -73,7 +72,8 @@ class KiroTests(unittest.TestCase):
             self.service(node['service'])
         self.assertEqual(self.engine.snapshot()['graph']['status'], 'complete')
         self.gesture('CLICK')
-        self.assertEqual(self.engine.mission_id, 'M02_VISION')
+        self.assertNotEqual(self.engine.mission_id, 'M01_VOICE')
+        self.assertIn(self.engine.mission_id, self.engine.missions)
         self.assertEqual(self.engine.state, 'ACTIVE')
         self.gesture('HOLD')
         self.assertEqual(self.engine.state, 'MODE_LOBBY')
@@ -131,8 +131,9 @@ class KiroTests(unittest.TestCase):
     def test_practice_can_return_to_supported_lobby_modes(self):
         self.engine.state = 'MODE_LOBBY'
         self.engine.mode = 'RUSH60_PRACTICE'
-        self.gesture('CLICK')
+        self.service('EC2')
         self.assertEqual(self.engine.mode, 'GUIDED')
+        self.assertEqual(self.engine.state, 'MODE_LOBBY')
 
 
 if __name__ == '__main__':

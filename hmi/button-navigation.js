@@ -1,0 +1,20 @@
+// Physical input and visible labels share one backend mapping.
+const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const icons={EC2:'ec2',IOT_CORE:'iot-core',S3:'s3',LAMBDA:'lambda',DYNAMODB:'dynamodb',API_GATEWAY:'api-gateway',CLOUDFRONT:'cloudfront',SQS:'sqs',BEDROCK:'bedrock',AGENTCORE:'agentcore',SAGEMAKER_AI:'sagemaker',REKOGNITION:'rekognition',TRANSCRIBE:'transcribe',POLLY:'polly',CLOUDWATCH:'cloudwatch',COGNITO:'cognito'};
+const text=(value,lang)=>typeof value==='string'?value:value?.[lang]||value?.zh||'';
+export function navigationMarkup(snapshot,lang,services){
+  const en=lang==='en', navigation=snapshot.navigation||{cells:[]};
+  const slots=snapshot.grid?.flat()||['A1','A2','B1','B2','A3','A4','B3','B4','C1','C2','D1','D2','C3','C4','D3','D4'];
+  return `<section class="physical-navigation" aria-label="${en?'Physical button map':'实体按键对应图'}"><div class="physical-map-heading"><strong>${en?'PRESS THE MATCHING LIT PANEL':'按同位置的亮灯方块'}</strong><span>${en?'ON THE WALL':'实体按钮墙'}</span></div><div class="physical-map">${slots.map(slot=>{
+    const service=services.find(item=>item.slot===slot)||{};
+    const cell=navigation.cells.find(item=>item.slot===slot),key=cell?.key||service.key;
+    const color=(cell?.color||[150,145,125]).map(n=>Math.max(0,Math.min(255,Number(n)||0))).join(',');
+    const name=(service.official_en||key||'').replace(/^(Amazon |AWS )/,'');
+    const icon=icons[key]?`<img src="/icons/${icons[key]}.svg" alt="">`:`<span class="physical-text-icon">${esc(key==='IOT_CORE'?'IoT':key)}</span>`;
+    return `<button type="button" ${snapshot.sim_input && cell ? `data-wall-button="${service.id}"` : 'disabled'} class="physical-map-key ${cell?'is-mapped':'is-unused'} ${cell?.selected?'is-selected':''}" style="--key-light:${color}" data-effect="${esc(cell?.effect||'off')}" data-slot="${slot}"><span class="physical-slot">${slot}</span>${icon}<small>${esc(name)}</small><strong>${cell?esc(text(cell.label,lang)):'—'}</strong>${cell?.selected?'<span class="physical-check">✓</span>':''}</button>`;
+  }).join('')}</div><div class="physical-map-legend"><span><i class="lamp-choice"></i>${en?'BLUE · CHOOSE':'蓝灯 · 可选择'}</span><span><i class="lamp-selected"></i>${en?'YELLOW · SELECTED':'黄灯 · 已选中'}</span><span><i class="lamp-settings"></i>${en?'PURPLE · SETTINGS':'紫灯 · 设置'}</span><span><i class="lamp-back"></i>${en?'WHITE · BACK':'白灯 · 返回'}</span></div><p class="physical-map-note">${snapshot.sim_input?(en?'Click a lit panel to test, then click Kiro to confirm.':'可直接点击亮灯方块测试，再点击 Kiro 确认。'):(en?'Match the service symbol and position. Press the physical button.':'对照服务图案和位置，按装置上的实体键。')}</p></section>`;
+}
+export function settingsMarkup(snapshot,lang,services){
+  const en=lang==='en',s=snapshot.ui_settings||{};
+  return `<section class="single-choice physical-menu settings-menu"><div class="choice-copy"><p class="eyebrow">SETTINGS / ${en?'PHYSICAL BUTTONS ONLY':'只需实体按键'}</p><h1>${en?'Make it yours':'装置设置'}</h1><p>${en?'Press a lit panel to change its setting. Changes are saved automatically.':'拍一下对应的亮灯方块即可修改，设置自动保存。'}</p><div class="settings-readout"><div><span>${en?'LANGUAGE':'语言'}</span><strong>${s.language==='en'?'English':'中文'}</strong></div><div><span>${en?'VOICE':'语音'}</span><strong>${s.voice_enabled?(en?'On':'开'):(en?'Off':'关')}</strong></div><div><span>${en?'VOLUME':'音量'}</span><strong>${Number(s.volume)||0}%</strong></div><div><span>${en?'ANIMATION':'动效'}</span><strong>${s.reduced_motion?(en?'Reduced':'减少'):(en?'On':'开启')}</strong></div></div><div class="physical-confirm">${en?'EC2 / S3 · LANGUAGE<br>Lambda / DynamoDB · VOLUME<br><b>PRESS KIRO TO RETURN</b>':'EC2 / S3 切换语言<br>Lambda / DynamoDB 调整音量<br><b>单击Kiro 键返回</b>'}</div><p class="settings-save-error" role="status">${s.error||snapshot.settings_error?(en?'Could not save. Please try the button again.':'设置未保存，请再按一次。'):''}</p></div>${navigationMarkup(snapshot,lang,services)}</section>`;
+}

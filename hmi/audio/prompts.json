@@ -1,0 +1,655 @@
+{
+  "version": 2,
+  "description": "Offline kiosk voice instructions. These files are pre-generated and served locally; no speech service is called during play.",
+  "prompts": [
+    {
+      "id": "welcome",
+      "zh": {
+        "text": "请按紫色 Kiro 键开始。每位访客可以体验三次，失败或退出也算一次。跟着屏幕线索，拍服务按钮搭建云架构。",
+        "file": "/audio/zh/welcome.mp3"
+      },
+      "en": {
+        "text": "Press the purple Kiro button to begin. Each visitor gets three plays, including failed or abandoned runs. Follow the screen clues and hit service buttons to build a cloud architecture.",
+        "file": "/audio/en/welcome.mp3"
+      }
+    },
+    {
+      "id": "mode_guided",
+      "zh": {
+        "text": "按 EC2 键选择引导构建，按 S3 键选择六十秒竞速，按 API Gateway 键选择自由探索。当前选择引导构建，按 Kiro 确认。按 SageMaker AI 返回首页，按 Cognito 进入设置。",
+        "file": "/audio/zh/mode_guided.mp3"
+      },
+      "en": {
+        "text": "Press EC2 for guided build, S3 for the sixty second race, or API Gateway for free exploration. Guided build is selected. Press Kiro to confirm. SageMaker AI returns home. Cognito opens settings.",
+        "file": "/audio/en/mode_guided.mp3"
+      }
+    },
+    {
+      "id": "mode_rush",
+      "zh": {
+        "text": "当前选择六十秒竞速，按 Kiro 确认。按 EC2 改选引导构建，按 S3 选择竞速，按 API Gateway 选择自由探索。竞速每步最多十秒，拍错或超时会结束本局。",
+        "file": "/audio/zh/mode_rush.mp3"
+      },
+      "en": {
+        "text": "The sixty second race is selected. Press Kiro to confirm. Press EC2 for guided build, S3 for the race, or API Gateway for free exploration. Each step allows ten seconds. A wrong or late hit ends the run.",
+        "file": "/audio/en/mode_rush.mp3"
+      }
+    },
+    {
+      "id": "mode_free",
+      "zh": {
+        "text": "当前选择自由探索，每局两分钟。按 Kiro 开始，拍服务键组合能力。按 EC2 选择引导，S3 选择竞速。",
+        "file": "/audio/zh/mode_free.mp3"
+      },
+      "en": {
+        "text": "Free exploration is selected. Each run lasts two minutes. Press Kiro to begin and select services. Press EC2 for guided build or S3 for the race.",
+        "file": "/audio/en/mode_free.mp3"
+      }
+    },
+    {
+      "id": "mission",
+      "zh": {
+        "text": "默认随机方案，按 Kiro 开始。拍 Bedrock 可选回随机。前两排八个服务键可以指定场景。按 SageMaker AI 返回，Cognito 进入设置。",
+        "file": "/audio/zh/mission.mp3"
+      },
+      "en": {
+        "text": "Random workflow is selected by default. Press Kiro to begin. Hit Bedrock to select random again. The first two rows select specific scenarios. SageMaker AI goes back; Cognito opens settings.",
+        "file": "/audio/en/mission.mp3"
+      }
+    },
+    {
+      "id": "ready",
+      "zh": {
+        "text": "准备。",
+        "file": "/audio/zh/ready.mp3"
+      },
+      "en": {
+        "text": "Ready.",
+        "file": "/audio/en/ready.mp3"
+      }
+    },
+    {
+      "id": "go",
+      "zh": {
+        "text": "开始！",
+        "file": "/audio/zh/go.mp3"
+      },
+      "en": {
+        "text": "Go!",
+        "file": "/audio/en/go.mp3"
+      }
+    },
+    {
+      "id": "paused",
+      "zh": {
+        "text": "已暂停。单击Kiro 键继续，长按两秒返回模式选择。",
+        "file": "/audio/zh/paused.mp3"
+      },
+      "en": {
+        "text": "Paused. Press Kiro to resume, or hold two seconds to return to modes.",
+        "file": "/audio/en/paused.mp3"
+      }
+    },
+    {
+      "id": "forfeit",
+      "zh": {
+        "text": "单击取消，双击结束。",
+        "file": "/audio/zh/forfeit.mp3"
+      },
+      "en": {
+        "text": "Press to cancel. Double press to end.",
+        "file": "/audio/en/forfeit.mp3"
+      }
+    },
+    {
+      "id": "free_edit",
+      "zh": {
+        "text": "每个服务都可以选两个。按一次选一个，再按一次选两个，第三次取消。单击 Kiro 分析组合，双击 Kiro 撤销上一步。",
+        "file": "/audio/zh/free_edit.mp3"
+      },
+      "en": {
+        "text": "You can select two instances of any service. Press once for one, again for two, and a third time to remove it. Press Kiro to analyze, or double press Kiro to undo.",
+        "file": "/audio/en/free_edit.mp3"
+      }
+    },
+    {
+      "id": "free_review",
+      "zh": {
+        "text": "方案已凑齐。单击Kiro 键换方案，双击确认，长按两秒返回编辑。",
+        "file": "/audio/zh/free_review.mp3"
+      },
+      "en": {
+        "text": "Workflow ready. Press Kiro to browse, double press to confirm, or hold two seconds to edit.",
+        "file": "/audio/en/free_review.mp3"
+      }
+    },
+    {
+      "id": "free_incomplete",
+      "zh": {
+        "text": "这个组合需要调整。请看屏幕列出的服务名称，补充缺少的服务，或移除本例未用到的服务。长按 Kiro 两秒返回编辑。",
+        "file": "/audio/zh/free_incomplete.mp3"
+      },
+      "en": {
+        "text": "This combination needs changes. Add missing services or remove services unused in this example, as listed on screen. Hold Kiro for two seconds to edit.",
+        "file": "/audio/en/free_incomplete.mp3"
+      }
+    },
+    {
+      "id": "free_no_match",
+      "zh": {
+        "text": "示例库没有收录这个组合，这不代表你的架构错误。这里只能匹配服务组合，不能验证完整设计。拍服务键调整，再按 Kiro 分析。",
+        "file": "/audio/zh/free_no_match.mp3"
+      },
+      "en": {
+        "text": "This combination is not in the examples. That does not mean your architecture is wrong. We match service sets, not complete designs. Adjust services and press Kiro to analyze.",
+        "file": "/audio/en/free_no_match.mp3"
+      }
+    },
+    {
+      "id": "guided_complete",
+      "zh": {
+        "text": "信号桥已贯通！单击Kiro 键挑战下一场景，双击选模式，长按两秒回首页。",
+        "file": "/audio/zh/guided_complete.mp3"
+      },
+      "en": {
+        "text": "Signal bridge complete! Press Kiro for the next scenario, double press for modes, or hold two seconds to return home.",
+        "file": "/audio/en/guided_complete.mp3"
+      }
+    },
+    {
+      "id": "complete",
+      "zh": {
+        "text": "挑战完成！单击Kiro 键再玩一次，双击选模式，长按两秒回首页。",
+        "file": "/audio/zh/complete.mp3"
+      },
+      "en": {
+        "text": "Run complete! Press Kiro to play again, double press for modes, or hold two seconds to return home.",
+        "file": "/audio/en/complete.mp3"
+      }
+    },
+    {
+      "id": "failed",
+      "zh": {
+        "text": "信号中断。单击Kiro 键再试一次，双击选模式，长按两秒回首页。",
+        "file": "/audio/zh/failed.mp3"
+      },
+      "en": {
+        "text": "Signal lost. Press Kiro to try again, double press for modes, or hold two seconds to return home.",
+        "file": "/audio/en/failed.mp3"
+      }
+    },
+    {
+      "id": "interrupted",
+      "zh": {
+        "text": "本局已结束，不计排名。单击Kiro 键再玩，双击选模式，长按两秒回首页。",
+        "file": "/audio/zh/interrupted.mp3"
+      },
+      "en": {
+        "text": "This run has ended and is not ranked. Press Kiro to play again, double press for modes, or hold two seconds to return home.",
+        "file": "/audio/en/interrupted.mp3"
+      }
+    },
+    {
+      "id": "offline",
+      "zh": {
+        "text": "连接中断，正在自动重连。请先停止拍击，等待屏幕恢复。",
+        "file": "/audio/zh/offline.mp3"
+      },
+      "en": {
+        "text": "Connection lost. Reconnecting automatically. Stop pressing buttons and wait for the screen to recover.",
+        "file": "/audio/en/offline.mp3"
+      }
+    },
+    {
+      "id": "operator",
+      "zh": {
+        "text": "设备需要检查。请联系现场工作人员，检查按钮连接或配置。",
+        "file": "/audio/zh/operator.mp3"
+      },
+      "en": {
+        "text": "The device needs attention. Ask event staff to check the wall connection or configuration.",
+        "file": "/audio/en/operator.mp3"
+      }
+    },
+    {
+      "id": "settings",
+      "zh": {
+        "text": "按 EC2 切换中文，按 S3 切换英文。按 Lambda 降低音量，按 DynamoDB 提高音量。按 API Gateway 开关语音，按 CloudFront 再听一遍说明，按 IoT Core 开关减少动态。按 Kiro 或 SageMaker AI 返回，按 Cognito 回首页。",
+        "file": "/audio/zh/settings.mp3"
+      },
+      "en": {
+        "text": "Press EC2 for Chinese or S3 for English. Lambda lowers the volume. DynamoDB raises it. API Gateway turns voice on or off. CloudFront repeats these instructions. IoT Core toggles reduced motion. Kiro or SageMaker AI goes back. Cognito returns home.",
+        "file": "/audio/en/settings.mp3"
+      }
+    },
+    {
+      "id": "service_ec2",
+      "zh": {
+        "text": "请按 EC2 键。",
+        "file": "/audio/zh/service_ec2.mp3"
+      },
+      "en": {
+        "text": "Press EC2.",
+        "file": "/audio/en/service_ec2.mp3"
+      }
+    },
+    {
+      "id": "service_s3",
+      "zh": {
+        "text": "请按 S3 键。",
+        "file": "/audio/zh/service_s3.mp3"
+      },
+      "en": {
+        "text": "Press S3.",
+        "file": "/audio/en/service_s3.mp3"
+      }
+    },
+    {
+      "id": "service_lambda",
+      "zh": {
+        "text": "请按 Lambda 键。",
+        "file": "/audio/zh/service_lambda.mp3"
+      },
+      "en": {
+        "text": "Press Lambda.",
+        "file": "/audio/en/service_lambda.mp3"
+      }
+    },
+    {
+      "id": "service_dynamodb",
+      "zh": {
+        "text": "请按 DynamoDB 键。",
+        "file": "/audio/zh/service_dynamodb.mp3"
+      },
+      "en": {
+        "text": "Press DynamoDB.",
+        "file": "/audio/en/service_dynamodb.mp3"
+      }
+    },
+    {
+      "id": "service_api_gateway",
+      "zh": {
+        "text": "请按 API Gateway 键。",
+        "file": "/audio/zh/service_api_gateway.mp3"
+      },
+      "en": {
+        "text": "Press API Gateway.",
+        "file": "/audio/en/service_api_gateway.mp3"
+      }
+    },
+    {
+      "id": "service_cloudfront",
+      "zh": {
+        "text": "请按 CloudFront 键。",
+        "file": "/audio/zh/service_cloudfront.mp3"
+      },
+      "en": {
+        "text": "Press CloudFront.",
+        "file": "/audio/en/service_cloudfront.mp3"
+      }
+    },
+    {
+      "id": "service_iot_core",
+      "zh": {
+        "text": "请按 IoT Core 键。",
+        "file": "/audio/zh/service_iot_core.mp3"
+      },
+      "en": {
+        "text": "Press IoT Core.",
+        "file": "/audio/en/service_iot_core.mp3"
+      }
+    },
+    {
+      "id": "service_sqs",
+      "zh": {
+        "text": "请按 SQS 键。",
+        "file": "/audio/zh/service_sqs.mp3"
+      },
+      "en": {
+        "text": "Press SQS.",
+        "file": "/audio/en/service_sqs.mp3"
+      }
+    },
+    {
+      "id": "service_bedrock",
+      "zh": {
+        "text": "请按 Bedrock 键。",
+        "file": "/audio/zh/service_bedrock.mp3"
+      },
+      "en": {
+        "text": "Press Bedrock.",
+        "file": "/audio/en/service_bedrock.mp3"
+      }
+    },
+    {
+      "id": "service_agentcore",
+      "zh": {
+        "text": "请按 Bedrock AgentCore 键。",
+        "file": "/audio/zh/service_agentcore.mp3"
+      },
+      "en": {
+        "text": "Press Bedrock AgentCore.",
+        "file": "/audio/en/service_agentcore.mp3"
+      }
+    },
+    {
+      "id": "service_sagemaker_ai",
+      "zh": {
+        "text": "请按 SageMaker AI 键。",
+        "file": "/audio/zh/service_sagemaker_ai.mp3"
+      },
+      "en": {
+        "text": "Press SageMaker AI.",
+        "file": "/audio/en/service_sagemaker_ai.mp3"
+      }
+    },
+    {
+      "id": "service_rekognition",
+      "zh": {
+        "text": "请按 Rekognition 键。",
+        "file": "/audio/zh/service_rekognition.mp3"
+      },
+      "en": {
+        "text": "Press Rekognition.",
+        "file": "/audio/en/service_rekognition.mp3"
+      }
+    },
+    {
+      "id": "service_transcribe",
+      "zh": {
+        "text": "请按 Transcribe 键。",
+        "file": "/audio/zh/service_transcribe.mp3"
+      },
+      "en": {
+        "text": "Press Transcribe.",
+        "file": "/audio/en/service_transcribe.mp3"
+      }
+    },
+    {
+      "id": "service_polly",
+      "zh": {
+        "text": "请按 Polly 键。",
+        "file": "/audio/zh/service_polly.mp3"
+      },
+      "en": {
+        "text": "Press Polly.",
+        "file": "/audio/en/service_polly.mp3"
+      }
+    },
+    {
+      "id": "service_cloudwatch",
+      "zh": {
+        "text": "请按 CloudWatch 键。",
+        "file": "/audio/zh/service_cloudwatch.mp3"
+      },
+      "en": {
+        "text": "Press CloudWatch.",
+        "file": "/audio/en/service_cloudwatch.mp3"
+      }
+    },
+    {
+      "id": "service_cognito",
+      "zh": {
+        "text": "请按 Cognito 键。",
+        "file": "/audio/zh/service_cognito.mp3"
+      },
+      "en": {
+        "text": "Press Cognito.",
+        "file": "/audio/en/service_cognito.mp3"
+      }
+    },
+    {
+      "id": "mission_m01_voice",
+      "zh": {
+        "text": "当前选择 EC2 键对应的AI 语音助手。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m01_voice.mp3"
+      },
+      "en": {
+        "text": "AI Voice Assistant, mapped to EC2, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m01_voice.mp3"
+      }
+    },
+    {
+      "id": "mission_m02_vision",
+      "zh": {
+        "text": "当前选择 S3 键对应的AI 视觉识别。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m02_vision.mp3"
+      },
+      "en": {
+        "text": "AI Vision, mapped to S3, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m02_vision.mp3"
+      }
+    },
+    {
+      "id": "mission_m03_iot",
+      "zh": {
+        "text": "当前选择 API Gateway 键对应的智能物联网。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m03_iot.mp3"
+      },
+      "en": {
+        "text": "Smart IoT, mapped to API Gateway, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m03_iot.mp3"
+      }
+    },
+    {
+      "id": "mission_m04_agent",
+      "zh": {
+        "text": "当前选择 CloudFront 键对应的生成式智能体。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m04_agent.mp3"
+      },
+      "en": {
+        "text": "Generative AI Agent, mapped to CloudFront, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m04_agent.mp3"
+      }
+    },
+    {
+      "id": "mission_m05_serverless_web",
+      "zh": {
+        "text": "当前选择 Lambda 键对应的无服务器 Web。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m05_serverless_web.mp3"
+      },
+      "en": {
+        "text": "Serverless Web, mapped to Lambda, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m05_serverless_web.mp3"
+      }
+    },
+    {
+      "id": "mission_m06_classic_web",
+      "zh": {
+        "text": "当前选择 DynamoDB 键对应的经典云计算 Web。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m06_classic_web.mp3"
+      },
+      "en": {
+        "text": "Classic Web, mapped to DynamoDB, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m06_classic_web.mp3"
+      }
+    },
+    {
+      "id": "mission_m07_event_driven",
+      "zh": {
+        "text": "当前选择 IoT Core 键对应的事件驱动处理。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m07_event_driven.mp3"
+      },
+      "en": {
+        "text": "Event-Driven Processing, mapped to IoT Core, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m07_event_driven.mp3"
+      }
+    },
+    {
+      "id": "mission_m08_ml",
+      "zh": {
+        "text": "当前选择 SQS 键对应的机器学习推理。按 Kiro 开始；也可以按前两排的其他亮灯服务键换场景。按 SageMaker AI 返回，按 Cognito 进入设置。",
+        "file": "/audio/zh/mission_m08_ml.mp3"
+      },
+      "en": {
+        "text": "Machine Learning Inference, mapped to SQS, is selected. Press Kiro to start, or press another lit service button in the first two rows to choose a different scenario. SageMaker AI goes back. Cognito opens settings.",
+        "file": "/audio/en/mission_m08_ml.mp3"
+      }
+    },
+    {
+      "id": "visit_done",
+      "zh": {
+        "text": "三次体验已结束，谢谢参与。请把机会留给下一位。页面将自动回到欢迎页。",
+        "file": "/audio/zh/visit_done.mp3"
+      },
+      "en": {
+        "text": "Your three plays are complete. Thank you! Please give the next visitor a turn. The welcome page will return automatically.",
+        "file": "/audio/en/visit_done.mp3"
+      }
+    },
+    {
+      "id": "free_time_up",
+      "zh": {
+        "text": "两分钟探索时间到，本局结束。单击 Kiro 再玩一次，双击选择模式。",
+        "file": "/audio/zh/free_time_up.mp3"
+      },
+      "en": {
+        "text": "Your two minutes of exploration are over. Press Kiro to play again, or double press to choose a mode.",
+        "file": "/audio/en/free_time_up.mp3"
+      }
+    },
+    {
+      "id": "solution_m01_voice",
+      "zh": {
+        "text": "这是一个语音问答示例。客户端把音频送给 Transcribe，收到转写后请求 Lambda。Lambda 调用 Bedrock 得到回答，再调用 Polly 合成语音，最后返回客户端。Bedrock 不会直接调用 Polly。",
+        "file": "/audio/zh/solution_m01_voice.mp3"
+      },
+      "en": {
+        "text": "This is a voice question-and-answer example. The client sends audio to Transcribe, then submits the transcript to Lambda. Lambda calls Bedrock for a reply, calls Polly to synthesize speech, and returns the audio to the client. Bedrock does not call Polly directly.",
+        "file": "/audio/en/solution_m01_voice.mp3"
+      }
+    },
+    {
+      "id": "solution_m02_vision",
+      "zh": {
+        "text": "图片上传 S3 后，通过配置的对象创建事件触发 Lambda。Lambda 调用 Rekognition 识别图像，收到标签后写入 DynamoDB。识别服务不会直接写数据库；事件重试还需要幂等处理。",
+        "file": "/audio/zh/solution_m02_vision.mp3"
+      },
+      "en": {
+        "text": "An image upload to S3 triggers Lambda through a configured object-created notification. Lambda calls Rekognition, receives the labels, and writes them to DynamoDB. Rekognition does not write the database directly. Event retries also require idempotent handling.",
+        "file": "/audio/en/solution_m02_vision.mp3"
+      }
+    },
+    {
+      "id": "solution_m03_iot",
+      "zh": {
+        "text": "这个方案收集设备状态。IoT Core 接收设备消息，Lambda 处理业务逻辑，DynamoDB 保存状态记录。它适合传感器数据处理。简单的直接写表，也可以使用 IoT 规则。",
+        "file": "/audio/zh/solution_m03_iot.mp3"
+      },
+      "en": {
+        "text": "This workflow collects device status. IoT Core receives device messages, Lambda applies business logic, and DynamoDB stores the records. It suits sensor processing. Simple direct writes can also use an IoT rule.",
+        "file": "/audio/en/solution_m03_iot.mp3"
+      }
+    },
+    {
+      "id": "solution_m04_agent",
+      "zh": {
+        "text": "API Gateway 接收请求，Lambda 调用 AgentCore Runtime 中部署的智能体代码，再由代码调用 Bedrock 模型。结果沿原路径返回。可选 DynamoDB 是自建会话存储，不是 AgentCore Memory。",
+        "file": "/audio/zh/solution_m04_agent.mp3"
+      },
+      "en": {
+        "text": "API Gateway receives the request. Lambda invokes custom agent code deployed in AgentCore Runtime, and that code calls a Bedrock model. Results return along the same path. Optional DynamoDB is a custom session store, not AgentCore Memory.",
+        "file": "/audio/en/solution_m04_agent.mp3"
+      }
+    },
+    {
+      "id": "solution_m05_serverless_web",
+      "zh": {
+        "text": "这是无服务器网站。S3 保存页面资源，CloudFront 负责分发。另一条分支由 API Gateway 接收接口请求，Lambda 执行业务逻辑，DynamoDB 保存数据。页面和接口是两条协作的路径。",
+        "file": "/audio/zh/solution_m05_serverless_web.mp3"
+      },
+      "en": {
+        "text": "This is a serverless website. S3 stores page assets and CloudFront delivers them. In a separate branch, API Gateway receives API requests, Lambda runs business logic, and DynamoDB stores data. The page and API follow cooperating paths.",
+        "file": "/audio/en/solution_m05_serverless_web.mp3"
+      }
+    },
+    {
+      "id": "solution_m06_classic_web",
+      "zh": {
+        "text": "这个网站使用 EC2 运行应用，S3 存放静态文件，CloudFront 分发这些文件。应用计算与静态内容分开承担职责，不是把所有服务串成一条线。",
+        "file": "/audio/zh/solution_m06_classic_web.mp3"
+      },
+      "en": {
+        "text": "This website runs its application on EC2. S3 holds static files, and CloudFront delivers them. Application computing and static content have separate responsibilities; they are not all one serial chain.",
+        "file": "/audio/en/solution_m06_classic_web.mp3"
+      }
+    },
+    {
+      "id": "solution_m07_event_driven",
+      "zh": {
+        "text": "API Gateway 调用生产者 Lambda，把任务写入 SQS。Lambda 事件源映射轮询队列，再调用消费者 Lambda 处理并写入 DynamoDB。消息可能重复，消费者必须幂等。入队成功不等于任务完成。",
+        "file": "/audio/zh/solution_m07_event_driven.mp3"
+      },
+      "en": {
+        "text": "API Gateway invokes a producer Lambda, which sends work to SQS. A Lambda event source mapping polls the queue and invokes a consumer Lambda to process it and write to DynamoDB. Messages can repeat, so the consumer must be idempotent. Queued does not mean completed.",
+        "file": "/audio/en/solution_m07_event_driven.mp3"
+      }
+    },
+    {
+      "id": "solution_m08_ml",
+      "zh": {
+        "text": "这是在线推理示例。S3 存放已训练的模型制品，先部署 SageMaker AI 推理端点。API Gateway 接收请求，Lambda 调用端点并返回预测。端点部署不依赖调用它的 Lambda，也不是每次请求都训练模型。",
+        "file": "/audio/zh/solution_m08_ml.mp3"
+      },
+      "en": {
+        "text": "This is an online inference example. S3 stores trained model artifacts, and a SageMaker AI endpoint is deployed first. API Gateway receives a request, and Lambda invokes the endpoint and returns a prediction. Endpoint deployment does not depend on the calling Lambda, and training is not performed for each request.",
+        "file": "/audio/en/solution_m08_ml.mp3"
+      }
+    },
+    {
+      "id": "solution_m09_protected_web",
+      "zh": {
+        "text": "S3 和 CloudFront 分发静态页面。用户登录 Cognito 获得令牌，API Gateway 的用户池授权器校验令牌后，调用 Lambda 读写 DynamoDB。这里保护的是 API；Cognito 不会自动保护静态页面。",
+        "file": "/audio/zh/solution_m09_protected_web.mp3"
+      },
+      "en": {
+        "text": "S3 and CloudFront deliver static pages. Users sign in with Cognito to obtain tokens. An API Gateway user-pool authorizer validates the token before Lambda reads or writes DynamoDB. This protects the API; Cognito does not automatically protect static pages.",
+        "file": "/audio/en/solution_m09_protected_web.mp3"
+      }
+    },
+    {
+      "id": "solution_m10_iot_direct",
+      "zh": {
+        "text": "这个方案把设备读数直接保存下来。IoT Core 接收消息，通过规则映射字段，写入 DynamoDB。适合简单的数据采集，不一定需要 Lambda，但仍要配置规则和访问权限。",
+        "file": "/audio/zh/solution_m10_iot_direct.mp3"
+      },
+      "en": {
+        "text": "This workflow saves device readings directly. IoT Core receives messages and uses a rule to map fields and write to DynamoDB. Simple data collection may not need Lambda, but it still needs rule configuration and access permissions.",
+        "file": "/audio/en/solution_m10_iot_direct.mp3"
+      }
+    },
+    {
+      "id": "solution_m11_async_api",
+      "zh": {
+        "text": "这个方案是异步任务入口。API Gateway 接收请求，通过服务集成把消息送入 SQS。返回成功表示任务已经入队，不代表处理完成。后续还需要消费者执行任务。",
+        "file": "/audio/zh/solution_m11_async_api.mp3"
+      },
+      "en": {
+        "text": "This workflow is an asynchronous task entry point. API Gateway receives a request and sends a message to SQS through a service integration. Success means the task is queued, not finished. A downstream consumer still needs to perform the work.",
+        "file": "/audio/en/solution_m11_async_api.mp3"
+      }
+    },
+    {
+      "id": "solution_m12_static_site",
+      "zh": {
+        "text": "浏览器先请求 CloudFront。缓存命中就直接返回；未命中时，CloudFront 使用源访问控制到 S3 存储桶取回文件。这里使用存储桶源，不是网站端点，文件也不是由 S3 主动推给 CloudFront。",
+        "file": "/audio/zh/solution_m12_static_site.mp3"
+      },
+      "en": {
+        "text": "The browser requests CloudFront first. A cache hit returns content immediately. On a miss, CloudFront fetches the file from an S3 bucket origin using origin access control. This uses a bucket origin, not a website endpoint. S3 does not push files to CloudFront.",
+        "file": "/audio/en/solution_m12_static_site.mp3"
+      }
+    },
+    {
+      "id": "solution_m13_image_tags",
+      "zh": {
+        "text": "这是对官方图片标签示例的事件驱动改编。S3 的对象创建事件触发 Lambda，由它调用 Rekognition，再把标签写回 S3 对象。只监听上传事件，避免标签写回再次触发；还要处理重试和标签数量限制。",
+        "file": "/audio/zh/solution_m13_image_tags.mp3"
+      },
+      "en": {
+        "text": "This adapts the official image-labeling example to events. An S3 object-created notification invokes Lambda, which calls Rekognition and writes tags back to S3. Listen only for uploads to avoid triggering again on tag changes, and handle retries and tag-count limits.",
+        "file": "/audio/en/solution_m13_image_tags.mp3"
+      }
+    }
+  ]
+}

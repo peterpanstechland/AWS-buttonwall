@@ -23,8 +23,42 @@ class Store:
         columns = {row[1] for row in self.conn.execute("PRAGMA table_info(sessions)")}
         if "event_id" not in columns:
             self.conn.executescript(MIGRATE_V2)
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS ui_preferences (
+                singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+                language TEXT NOT NULL CHECK (language IN ('zh', 'en')),
+                voice_enabled INTEGER NOT NULL CHECK (voice_enabled IN (0, 1)),
+                volume INTEGER NOT NULL CHECK (volume BETWEEN 0 AND 100),
+                reduced_motion INTEGER NOT NULL CHECK (reduced_motion IN (0, 1)),
+                revision INTEGER NOT NULL DEFAULT 0,
+                replay_seq INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        self.conn.execute("INSERT OR IGNORE INTO ui_preferences VALUES (1, 'zh', 1, 80, 0, 0, 0)")
         self.conn.commit()
         self._alias = 41
+
+    def ui_settings(self) -> dict:
+        row = dict(self.conn.execute("SELECT * FROM ui_preferences WHERE singleton = 1").fetchone())
+        row.pop("singleton")
+        row["voice_enabled"] = bool(row["voice_enabled"])
+        row["reduced_motion"] = bool(row["reduced_motion"])
+        return row
+
+    def save_ui_settings(self, changes: dict, replay=False) -> dict:
+        # Commit before returning: an unavailable database must never look saved.
+        with self.conn:
+            self.conn.execute("BEGIN IMMEDIATE")
+            updated = {**self.ui_settings(), **changes}
+            updated["revision"] += 1
+            updated["replay_seq"] += int(replay)
+            self.conn.execute("""
+                UPDATE ui_preferences SET language = ?, voice_enabled = ?, volume = ?,
+                    reduced_motion = ?, revision = ?, replay_seq = ? WHERE singleton = 1
+            """, tuple(updated[key] for key in (
+                "language", "voice_enabled", "volume", "reduced_motion", "revision", "replay_seq"
+            )))
+        return updated
 
     def next_alias(self) -> int:
         self._alias += 1

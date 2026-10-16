@@ -1,0 +1,22 @@
+[Unit]
+Description=AWS wall dedicated HDMI X11 display
+After=systemd-user-sessions.service
+Conflicts=getty@tty7.service
+After=getty@tty7.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Group=sunrise
+RuntimeDirectory=aws-wall-display
+RuntimeDirectoryMode=0750
+TTYPath=/dev/tty7
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+ExecStart=/bin/bash /opt/aws-wall/current/deploy/display.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

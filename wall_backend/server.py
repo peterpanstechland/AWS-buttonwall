@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -133,6 +134,8 @@ class Handler(BaseHTTPRequestHandler):
             kind = "image/png"
         elif path.suffix == ".json":
             kind = "application/json"
+        elif path.suffix == ".mp3":
+            kind = "audio/mpeg"
         data = path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", kind)
@@ -153,6 +156,9 @@ class Handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             self._json({"error": "BAD_JSON"}, 400)
             return
+        if not isinstance(body, dict):
+            self._json({"error": "JSON_OBJECT_REQUIRED"}, 400)
+            return
         if "score" in body or "solutions_completed" in body:
             self._json({"error": "score is computed by the backend"}, 400)
             return
@@ -161,10 +167,25 @@ class Handler(BaseHTTPRequestHandler):
             self._json(ACTIONS[action_id])
             return
         path = parsed.path
-        if path == "/api/admin/test-panel" and ENGINE.state == "ACTIVE" and ENGINE.mode == "RUSH60_RANKED":
+        if path == "/api/ui/settings":
+            try:
+                ENGINE.update_ui_settings({key: value for key, value in body.items() if key != "client_action_id"})
+            except ValueError as error:
+                self._json({"error": str(error)}, 400)
+                return
+            except RuntimeError as error:
+                self._json({"error": str(error)}, 409)
+                return
+            except (sqlite3.Error, OSError):
+                broadcast(ENGINE)
+                self._json({"error": "SETTINGS_SAVE_FAILED", "snapshot": ENGINE.snapshot()}, 503)
+                return
+        elif path == "/api/admin/test-panel" and ENGINE.state == "ACTIVE" and ENGINE.mode == "RUSH60_RANKED":
             self._json({"error": "ranked active"}, 409)
             return
-        if path == "/api/mode/select":
+        if path == "/api/ui/settings":
+            pass
+        elif path == "/api/mode/select":
             ENGINE.select_mode(body.get("mode"))
         elif path == "/api/game/start":
             ENGINE.start(body.get("mission_id"))
@@ -178,6 +199,10 @@ class Handler(BaseHTTPRequestHandler):
             ENGINE.undo()
         elif path == "/api/game/leave":
             ENGINE.leave()
+        elif path == "/api/game/home":
+            if not ENGINE.home():
+                self._json({"error": "RUSH_IN_PROGRESS", "snapshot": ENGINE.snapshot()}, 409)
+                return
         elif path == "/api/free/confirm":
             ENGINE.confirm_candidate(body.get("mission_id"))
         elif path == "/api/free/instance":
@@ -229,9 +254,13 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
 
-def serve(host="127.0.0.1", port=8080, sim=True):
+def serve(host="127.0.0.1", port=8080, sim=True, db_path=None):
     global ENGINE
-    ENGINE = Engine(Store(ROOT / "wall.db"), sim=sim)
+    if not sim:
+        raise ValueError("The serial MCU transport is not implemented; use DEVICE_MODE=mock.")
+    database = Path(db_path).expanduser() if db_path else ROOT / "wall.db"
+    database.parent.mkdir(parents=True, exist_ok=True)
+    ENGINE = Engine(Store(database), sim=sim)
     httpd = ThreadingHTTPServer((host, port), Handler)
     def tick_game():
         while True:

@@ -1,12 +1,26 @@
 [Unit]
 Description=AWS wall kiosk
-After=wall-backend.service
-Wants=wall-backend.service
+After=wall-backend.service wall-display.service
+Wants=wall-backend.service wall-display.service
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/chromium --kiosk --no-first-run http://127.0.0.1:8091/
-Restart=on-failure
+User=sunrise
+Group=sunrise
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/run/aws-wall-display/Xauthority
+Environment=WALL_EFFECTS=off
+Environment=WALL_REDUCED_MOTION=0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/aws-wall.env
+StateDirectory=aws-wall-kiosk
+ExecStart=/usr/bin/dbus-run-session -- /usr/bin/python3 /opt/aws-wall/current/deploy/kiosk.py
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
 
 [Install]
-WantedBy=graphical.target
+WantedBy=multi-user.target

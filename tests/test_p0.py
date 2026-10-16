@@ -212,7 +212,9 @@ class PlayTests(unittest.TestCase):
     def test_free_cases(self):
         missions = load_missions()
         partial = analyze_selection(missions, Counter({"S3": 1, "LAMBDA": 1, "REKOGNITION": 1}))
-        self.assertEqual(partial["candidates"][0]["mission_id"], "M02_VISION")
+        self.assertEqual(partial["candidates"][0]["mission_id"], "M13_IMAGE_TAGS")
+        self.assertEqual(partial["candidates"][0]["status"], "VALID_COMPLETE")
+        partial["candidates"] = [r for r in partial["candidates"] if r["mission_id"] == "M02_VISION"]
         self.assertEqual(partial["candidates"][0]["status"], "VALID_PARTIAL")
         self.assertIn("DYNAMODB", partial["candidates"][0]["missing"])
         voice = analyze_selection(missions, Counter({"TRANSCRIBE": 1, "BEDROCK": 1, "POLLY": 1}))
@@ -225,7 +227,7 @@ class PlayTests(unittest.TestCase):
         everything = Counter({row["key"]: 1 for row in load_services()[0] if row["id"]})
         full = analyze_selection(missions, everything)
         self.assertLessEqual(len(full["candidates"]), 3)
-        self.assertTrue(any(row["status"] == "VALID_COMPLETE" for row in full["candidates"]))
+        self.assertFalse(any(row["status"] == "VALID_COMPLETE" for row in full["candidates"]))
         self.assertFalse(take_role(engine_mission(), set(), "POLLY"))
 
     def test_ranked_board_isolates_practice(self):

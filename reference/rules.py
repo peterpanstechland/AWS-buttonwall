@@ -40,14 +40,16 @@ def analyze_selection(missions: list[dict], selected: Counter, limit: int = 3) -
         need = _required_need(mission)
         total = sum(need.values())
         matched = sum(min(selected[service], count) for service, count in need.items())
-        if matched < 2 and not (total and matched / total >= 0.5 and matched >= 1):
+        if matched < 2:
             continue
         missing = []
+        capacity = Counter(node['service'] for node in mission['nodes'])
+        extra = list((selected - capacity).elements())
         for service, count in need.items():
             short = count - selected[service]
             if short > 0:
                 missing.extend([service] * short)
-        status = "VALID_COMPLETE" if matched == total else "VALID_PARTIAL"
+        status = "VALID_COMPLETE" if matched == total and not extra else "VALID_PARTIAL"
         candidates.append(
             {
                 "mission_id": mission["id"],
@@ -56,6 +58,8 @@ def analyze_selection(missions: list[dict], selected: Counter, limit: int = 3) -
                 "matched_required": matched,
                 "total_required": total,
                 "missing": missing,
+                "extra": extra,
+                "similarity": matched / max(1, total + len(extra)),
                 "present_nodes": [
                     node["node_id"]
                     for node in mission["nodes"]
@@ -64,7 +68,7 @@ def analyze_selection(missions: list[dict], selected: Counter, limit: int = 3) -
                 "explanation": mission["teaching_points"],
             }
         )
-    candidates.sort(key=lambda row: (-row["matched_required"] / row["total_required"], len(row["missing"]), row["mission_id"]))
+    candidates.sort(key=lambda row: (row['status'] != 'VALID_COMPLETE', -row['similarity'], len(row['missing']), row['mission_id']))
     chosen = candidates[:limit]
     if not chosen:
         return {
