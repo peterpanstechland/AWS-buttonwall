@@ -20,7 +20,7 @@ void app_main(void)
     input_scan_init();
     strip_init();
     strip_show();
-    ESP_LOGI(TAG, "boot dark; BW bench and BW2 game transport on native USB");
+    ESP_LOGI(TAG, "boot dark; BW bench and BW3 game transport on native USB");
     esp_log_level_set("*", ESP_LOG_WARN);
     bringup_init();
     while (true) {

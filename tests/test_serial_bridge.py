@@ -18,7 +18,7 @@ class BridgeTests(unittest.TestCase):
         self.b=BwBridge(self.e,'test',lambda path:self.port); self.e.bridge=self.b
         self.b.poll(); self.seq=0
     def hello(self,mask=0):
-        self.port.rx=f'BW HELLO 2 123 {int(self.e.crc,16)} 100 {mask}\n'.encode(); self.b.poll()
+        self.port.rx=f'BW HELLO 3 123 {int(self.e.crc,16)} 100 {mask}\n'.encode(); self.b.poll()
         self.e.mcu.out=[]
     def state(self,mask,delta=50000):
         self.now+=delta; self.seq+=1
@@ -53,7 +53,7 @@ class BridgeTests(unittest.TestCase):
         self.state(0);self.now+=400000
         self.assertFalse(any(f.msg_type==START_GESTURE for f in self.e.mcu.poll(self.now)))
     def test_bad_crc_old_firmware_and_sequence_gap_fail_closed(self):
-        self.port.rx=b'BW HELLO 2 123 0 100 0\n';self.b.poll();self.assertFalse(self.b.online)
+        self.port.rx=b'BW HELLO 3 123 0 100 0\n';self.b.poll();self.assertFalse(self.b.online)
         self.now+=1000001;self.b.poll();self.port.rx=b'BW PONG v0.8\n';self.b.poll()
         self.now+=1600000;self.b.poll();self.assertEqual(self.b.error,'LINK_TIMEOUT')
     def test_gap_and_timeout_cancel_pending_input(self):
@@ -63,13 +63,14 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.e.mcu.levels,[False]*17)
     def test_light_transaction_ack_and_timeout(self):
         self.hello();self.b.lights();self.assertIsNotNone(self.b.pending)
-        self.assertEqual(len(self.port.tx[-1].split()[-1]),128)
+        self.assertEqual(len(self.port.tx[-1].split()[-1]),136)
+        self.assertEqual(bytes.fromhex(self.port.tx[-1].split()[-1].decode())[-4:], bytes([160,64,255,3]))
         self.port.rx=b'BW FRAME_OK 1 1\n';self.b.poll();self.assertTrue(self.b.applied)
         self.assertTrue(self.e.snapshot()['light_plan']['hardware_applied'])
         self.state(0,1600000);self.now+=1600000;self.b.poll()
         self.assertFalse(self.e.snapshot()['light_plan']['hardware_applied'])
     def test_fragmented_stream_and_out_of_order_rejection(self):
-        raw=f'BW HELLO 2 123 {int(self.e.crc,16)} 100 0\n'.encode()
+        raw=f'BW HELLO 3 123 {int(self.e.crc,16)} 100 0\n'.encode()
         for byte in raw:self.port.rx=bytes([byte]);self.b.poll()
         self.assertTrue(self.b.online)
         self.state(0);self.port.rx=f'BW STATE 123 1 {self.now} 0\n'.encode();self.b.poll()
@@ -86,11 +87,11 @@ class LinuxSerialTests(unittest.TestCase):
         e.bridge=BwBridge(e,path);e.tick()
         self.addCleanup(lambda:e.bridge.port and e.bridge.port.close())
         self.assertTrue(select.select([master],[],[],1)[0])
-        self.assertIn(b'BW GAME 2',os.read(master,8192))
+        self.assertIn(b'BW GAME 3',os.read(master,8192))
         seq=0
         def send(line):
             os.write(master,(line+'\n').encode());e.tick()
-        send(f'BW HELLO 2 123 {int(e.crc,16)} 100 0')
+        send(f'BW HELLO 3 123 {int(e.crc,16)} 100 0')
         def state(mask,delta=50000):
             nonlocal seq
             now[0]+=delta;seq+=1

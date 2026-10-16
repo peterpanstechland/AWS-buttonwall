@@ -1,4 +1,4 @@
-"""BW2 USB bridge. Physical inputs with host timing; never ranked scoring.
+"""BW3 USB bridge. Physical inputs with host timing; never ranked scoring.
 
 No serial dependency on Linux/RDK. Bench BW SLOT firmware is deliberately rejected.
 """
@@ -75,7 +75,7 @@ class BwBridge:
     def line(self, text, now):
         p=text.split()
         if p[:2]==['BW','HELLO']:
-            if len(p)!=7 or p[2]!='2' or int(p[4])!=int(self.engine.crc,16):
+            if len(p)!=7 or p[2]!='3' or int(p[4])!=int(self.engine.crc,16):
                 raise ValueError('MAP_OR_VERSION_MISMATCH')
             if self.online: raise ValueError('UNEXPECTED_HELLO')
             mask=int(p[6]); device_us=int(p[5])
@@ -83,7 +83,7 @@ class BwBridge:
             self.online=True; self.boot=int(p[3]); self.seq=0
             self.last_device_us=device_us; self.last_rx=now
             self.ready=mask==0; self.error=None if self.ready else 'RELEASE_ALL_KEYS'
-            self.engine.mcu.boot_id='bw2-'+str(self.boot)
+            self.engine.mcu.boot_id='bw3-'+str(self.boot)
             self.engine.mcu.hello(); self.engine._push('device.state')
         elif p[:2]==['BW','STATE']:
             if not self.online or len(p)!=6: raise ValueError('STATE_WITHOUT_HELLO')
@@ -112,7 +112,7 @@ class BwBridge:
             if self.port is None:
                 if now<self.retry_at:return
                 self.port=self.factory(self.path); self.last_rx=now; self.last_keep=now
-                self.send('BW GAME 2 '+str(int(self.engine.crc,16)))
+                self.send('BW GAME 3 '+str(int(self.engine.crc,16)))
             data=self.port.read()
             self.buffer+=data
             if len(self.buffer)>16384: raise ValueError('RX_OVERFLOW')
@@ -131,11 +131,13 @@ class BwBridge:
         if not self.online or not self.ready:return
         effects={'off':0,'steady':1,'pulse':2,'breathe':3}
         plan=self.engine.light_plan(self.engine.navigation())
-        data=bytearray(64)
+        data=bytearray(68)
         for cell in plan['cells']:
             i=(cell['button_id']-1)*4
             color=cell['color']; effect=effects.get(cell['effect'],0)
             data[i:i+4]=bytes([max(0,min(255,int(v))) for v in color]+[effect])
+        kiro=plan['kiro']
+        data[64:68]=bytes(kiro['color']+[effects[kiro['effect']]])
         encoded=data.hex()
         if encoded==self.last_frame or self.pending:return
         try:
@@ -148,4 +150,4 @@ class BwBridge:
     def status(self):
         return {'online':self.online,'ready':self.ready,'error':self.error,
                 'lights_acknowledged':self.applied,'button_lamps_ready':self.lamps_ok,
-                'protocol':'BW2','timing':'host','ranked_eligible':False}
+                'protocol':'BW3','timing':'host','ranked_eligible':False}

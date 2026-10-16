@@ -4,7 +4,7 @@
 
 2026-10-16 部署到 `sunrise@192.168.88.123`（主机名 `booth-03`）。系统 Ubuntu 22.04.5 / aarch64、Python 3.10.12、Chromium 149。RDK 程序仅依赖 Python 标准库；没有部署或刷写 ESP 固件。
 
-- 版本目录：`/opt/aws-wall/releases/20261016-bw2-bridge`，入口软链接 `/opt/aws-wall/current`。上一版 `20261016-physical-controls` 保留，可回滚原界面和语音；持久数据库未改，本次只更新界面提示和音频资源。
+- 版本目录：`/opt/aws-wall/releases/20261016-kiro31`，入口软链接 `/opt/aws-wall/current`。上一版 `20261016-physical-controls` 保留，可回滚原界面和语音；持久数据库未改，本次只更新界面提示和音频资源。
 - 配置：`/etc/aws-wall.env`，模板 `deploy/aws-wall.env.example`。
 - 持久数据库：`/var/lib/aws-wall/wall.db`，独立于版本目录。
 - 浏览器 profile：`/var/lib/aws-wall-kiosk/chromium`。
@@ -87,3 +87,11 @@ ESP32-S3（MAC `84:c7:bb:79:bf:94`、16 MB Flash、8 MB PSRAM）已刷写 BW2 �
 `/etc/aws-wall.env` 当前为 `DEVICE_MODE=bw_serial`，端口 `/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_84:C7:BB:79:BF:94-if00`。后端服务已加入 dialout 附加组。实体模式关闭鼠标模拟入口，使用真实按键；如需恢复鼠标测试，将 DEVICE_MODE 改回 mock 后重启后端。
 
 真实 USB 验证通过：15 秒连续 149 个状态包、CRC 匹配、完整灯效帧确认、按钮灯初始化成功；未发现 task_wdt 报警。故意停止心跳 2.6 秒后收到固件 WATCHDOG 退出确认。服务重启后 BW2 在线且 ready。以上不代替所有物理槽位、颜色和长时间运行的现场验收。仍是主机计时体验模式，不入正式排行榜。
+
+## 当前版本：31 颗单元 + Kiro 灯箱 / BW3
+
+2026-10-16 已刷写并启用 BW3：每单元 31 颗，A/B/C 各 124，D 路 D1→D2→D3→D4→START 共 155，总计 527。Kiro 位于 D 路零基偏移 124，长 31；服务 GPIO 和 MCP 位号不变。映射 CRC 为十进制 1248758811。
+
+新应用 SHA-256：`07a19db3d509bf94461971d83fb9afb4f43b34ed3cd5c54ba636f82b1783dd7e`。刷写前读取旧应用到 `/home/sunrise/aws-wall-backup-fw-20261016/bw2-before-kiro31.bin`，其哈希与上一版发布文件一致。仅更新应用分区；BW3 后端与固件必须配对回滚。
+
+固件编译与写入校验通过，板端 96 项测试通过；真实设备 BW3 在线、ready、灯效确认和按钮灯驱动就绪。界面在三种分辨率验证实体模式的 Kiro 仍禁用鼠标输入，但透明度为 1、背景为完整紫色。用户确认完整硬件尚未组装；实际灯箱颜色和 D4/START 边界尚未实测，待装配后验收。

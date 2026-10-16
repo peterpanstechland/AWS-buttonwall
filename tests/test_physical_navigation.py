@@ -215,7 +215,8 @@ class PhysicalNavigationTests(unittest.TestCase):
         plan = snap["light_plan"]
         self.assertTrue(plan["simulated"])
         self.assertFalse(plan["hardware_applied"])
-        self.assertEqual(plan["kiro"], {"rgb": False, "lamp": "constant"})
+        self.assertTrue(plan["kiro"]["rgb"])
+        self.assertEqual(plan["kiro"]["effect"], "breathe")
         self.assertEqual({c["button_id"] for c in plan["cells"]}, set(range(1, 17)))
         nav = {c["button_id"]: c for c in snap["navigation"]["cells"]}
         for cell in plan["cells"]:

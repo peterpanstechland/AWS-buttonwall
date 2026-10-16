@@ -36,7 +36,7 @@ static bool line_overflow;
 static volatile bool game_mode;
 static uint32_t boot_id, state_seq, button_mask;
 static uint64_t last_host, next_state, next_render;
-static uint8_t scene[16][4];
+static uint8_t scene[17][4];
 static volatile uint32_t game_lamp_mask;
 static int line_len;
 
@@ -237,10 +237,11 @@ static void render_game(uint64_t now)
     uint32_t lamps = 0;
     uint32_t phase = (now / 1000) % 2000;
     unsigned breath = phase < 1000 ? phase * 255 / 1000 : (2000-phase) * 255 / 1000;
-    for (int i=0; i<16; i++) {
+    for (int i=0; i<17; i++) {
         unsigned gain = scene[i][3] == 1 ? 255 : scene[i][3] == 2 ? ((now / 250000)%2 ? 40 : 255) : scene[i][3] == 3 ? breath : 0;
-        strip_panel(i+1, scene[i][0]*gain/255, scene[i][1]*gain/255, scene[i][2]*gain/255);
-        if (gain > 100 && HW_LAMP_BIT[i+1] >= 0) lamps |= 1u << HW_LAMP_BIT[i+1];
+        int button_id = i == 16 ? 0 : i+1;
+        strip_panel(button_id, scene[i][0]*gain/255, scene[i][1]*gain/255, scene[i][2]*gain/255);
+        if (gain > 100 && HW_LAMP_BIT[button_id] >= 0) lamps |= 1u << HW_LAMP_BIT[button_id];
     }
     game_lamp_mask = lamps;
     gpio_set_level(HW_OE_GPIO, 0);
@@ -257,24 +258,24 @@ static void handle(char *text)
     }
     unsigned crc;
     int used = 0;
-    if (sscanf(text, "GAME 2 %u%n", &crc, &used) == 1 && text[used] == 0) {
+    if (sscanf(text, "GAME 3 %u%n", &crc, &used) == 1 && text[used] == 0) {
         if (crc != HW_MAPPING_CRC) { printf("BW ERR MAP\n"); return; }
         game_off(); game_mode = true; last_host = esp_timer_get_time();
         state_seq = 0; next_state = last_host; next_render = last_host;
-        printf("BW HELLO 2 %" PRIu32 " %" PRIu32 " %" PRIu64 " %" PRIu32 "\n", boot_id, (uint32_t)HW_MAPPING_CRC, last_host, button_mask);
+        printf("BW HELLO 3 %" PRIu32 " %" PRIu32 " %" PRIu64 " %" PRIu32 "\n", boot_id, (uint32_t)HW_MAPPING_CRC, last_host, button_mask);
         return;
     }
     if (strcmp(text, "KEEP") == 0 && game_mode) { last_host = esp_timer_get_time(); return; }
     if (strncmp(text, "FRAME ", 6) == 0 && game_mode) {
-        unsigned seq; char hex[129]; int end = 0;
-        if (sscanf(text, "FRAME %u %128s%n", &seq, hex, &end) != 2 || text[end] || strlen(hex)!=128) { printf("BW ERR FRAME\n"); return; }
-        uint8_t staged[16][4];
-        for (int i=0;i<64;i++) {
+        unsigned seq; char hex[137]; int end = 0;
+        if (sscanf(text, "FRAME %u %136s%n", &seq, hex, &end) != 2 || text[end] || strlen(hex)!=136) { printf("BW ERR FRAME\n"); return; }
+        uint8_t staged[17][4];
+        for (int i=0;i<68;i++) {
             char pair[3] = {hex[i*2],hex[i*2+1],0}; unsigned value;
             if (!isxdigit((unsigned char)pair[0]) || !isxdigit((unsigned char)pair[1]) || sscanf(pair,"%2x",&value)!=1) { printf("BW ERR FRAME\n"); return; }
             staged[i/4][i%4] = value;
         }
-        for (int i=0;i<16;i++) if(staged[i][3]>3) { printf("BW ERR EFFECT\n"); return; }
+        for (int i=0;i<17;i++) if(staged[i][3]>3) { printf("BW ERR EFFECT\n"); return; }
         memcpy(scene, staged, sizeof scene); last_host=esp_timer_get_time();
         render_game(last_host);
         printf("BW FRAME_OK %u %d\n",seq,lamp_ok ? 1 : 0);

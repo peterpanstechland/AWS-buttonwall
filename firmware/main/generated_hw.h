@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #define HW_REVISION "v0.8"
-#define HW_PIXELS_PER_PANEL 32
+#define HW_PIXELS_PER_PANEL 31
 #define HW_OE_GPIO 42
 #define HW_I2C_SDA_GPIO 47
 #define HW_I2C_SCL_GPIO 3
@@ -21,9 +21,13 @@ static const char *HW_BUTTON_NAME[HW_BUTTON_COUNT] = {
     "START", "A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4", "C1", "C2", "C3", "C4", "D1", "D2", "D3", "D4"
 };
 static const int HW_BUTTON_LANE[HW_BUTTON_COUNT] = {
-    -1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3
+    3, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3
 };
-#define HW_MAPPING_CRC 2139165486u
+#define HW_MAPPING_CRC 1248758811u
 static const int HW_BUTTON_OFFSET[HW_BUTTON_COUNT] = {
-    -1, 0, 32, 64, 96, 0, 32, 64, 96, 0, 32, 64, 96, 0, 32, 64, 96
+    124, 0, 31, 62, 93, 0, 31, 62, 93, 0, 31, 62, 93, 0, 31, 62, 93
+};
+#define HW_MAX_LANE_PIXELS 155
+static const int HW_LANE_PIXELS[HW_LANE_COUNT] = {
+    124, 124, 124, 155
 };

@@ -17,3 +17,6 @@
 @media(max-width:760px){.installation-attract{grid-template-columns:1fr;gap:25px}.installation-attract .signal-title h1{font-size:38px}.start-key-badge{margin-top:15px}.installation-attract .hero-start{gap:22px}.installation-attract #hero-kiro-slot,.installation-attract .kiro-control.kiro-hero{width:140px}.installation-attract .kiro-control.kiro-hero{height:140px}.hero-start-help>strong{font-size:14px}.hero-start-help>span,.installation-attract .hero-start-help small{font-size:9px}}
 
 .start-key-badge b img{display:block;width:85%;height:85%;object-fit:contain}.installation-attract .kiro-hero:before{display:none}
+
+/* Disabled means physical input only; keep the Kiro landmark fully visible. */
+.kiro-control:disabled{opacity:1;cursor:default}

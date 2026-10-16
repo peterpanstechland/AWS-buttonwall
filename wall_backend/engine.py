@@ -665,7 +665,9 @@ class Engine:
                           "color": [0, 0, 0], "effect": "off", **(source or {}),
                           "panel_state": self.panels[button["id"]] if self.state == "ACTIVE" else "NAVIGATION" if source else "OFF"})
         return {"simulated": not bool(self.bridge), "hardware_applied": bool(self.bridge and self.bridge.online and self.bridge.applied and self.bridge.lamps_ok), "brightness_cap": self.cfg["brightness_cap"], "cells": cells,
-                "kiro": {"rgb": False, "lamp": "constant"}}
+                "kiro": {"rgb": True, "lamp": "constant", "color": [160, 64, 255],
+                         "effect": "pulse" if self.state in {"PREPARE", "COUNTDOWN", "RESULT", "INTERRUPTED"} or self.paused or self.free_review
+                         else "steady" if self.state in {"ACTIVE", "SETTLING"} else "breathe"}}
 
     def _hit(self, payload: dict):
         identity = (payload.get("boot_id"), payload.get("press_id"))

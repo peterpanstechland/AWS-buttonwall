@@ -8,7 +8,7 @@
 
 #include <string.h>
 
-#define PIXELS (HW_PIXELS_PER_PANEL * 4)
+#define PIXELS HW_MAX_LANE_PIXELS
 #define BRIGHT_NUM 1
 #define BRIGHT_DEN 4
 
@@ -54,7 +54,7 @@ void strip_fill(int lane, uint8_t r, uint8_t g, uint8_t b)
     scale(&r);
     scale(&g);
     scale(&b);
-    for (int i = 0; i < PIXELS; i++) {
+    for (int i = 0; i < HW_LANE_PIXELS[lane]; i++) {
         put_pixel(lane, i, r, g, b);
     }
 }
@@ -66,10 +66,10 @@ void strip_clear(void)
 
 void strip_panel(int button_id, uint8_t r, uint8_t g, uint8_t b)
 {
-    if (button_id <= 0 || button_id >= HW_BUTTON_COUNT) return;
+    if (button_id < 0 || button_id >= HW_BUTTON_COUNT) return;
     int lane = HW_BUTTON_LANE[button_id];
     int offset = HW_BUTTON_OFFSET[button_id];
-    if (lane < 0 || offset < 0 || offset + HW_PIXELS_PER_PANEL > PIXELS) return;
+    if (lane < 0 || offset < 0 || offset + HW_PIXELS_PER_PANEL > HW_LANE_PIXELS[lane]) return;
     scale(&r); scale(&g); scale(&b);
     for (int i = offset; i < offset + HW_PIXELS_PER_PANEL; i++)
         put_pixel(lane, i, r, g, b);
@@ -80,8 +80,8 @@ void strip_chase(int lane, int count, uint8_t r, uint8_t g, uint8_t b, int hot)
     if (lane < 0 || lane >= HW_LANE_COUNT || count <= 0) {
         return;
     }
-    if (count > PIXELS) {
-        count = PIXELS;
+    if (count > HW_LANE_PIXELS[lane]) {
+        count = HW_LANE_PIXELS[lane];
     }
     uint8_t hr = 255;
     uint8_t hg = 255;
@@ -106,7 +106,7 @@ void strip_show(void)
 {
     rmt_transmit_config_t tx = {.loop_count = 0};
     for (int lane = 0; lane < HW_LANE_COUNT; lane++) {
-        if (rmt_transmit(channels[lane], encoder, pixels[lane], sizeof pixels[lane], &tx) == ESP_OK) {
+        if (rmt_transmit(channels[lane], encoder, pixels[lane], HW_LANE_PIXELS[lane] * 3, &tx) == ESP_OK) {
             rmt_tx_wait_all_done(channels[lane], 200);
         }
     }

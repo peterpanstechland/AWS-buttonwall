@@ -102,7 +102,7 @@ class VirtualMcu:
                 "service_count": 16,
                 "capabilities": {
                     "rmt_lanes": 4,
-                    "start_neopixel": False,
+                    "start_neopixel": bool(self.hardware["lamps"]["start_neopixel"]),
                     "button_lamps": bool(self.hardware["lamps"]["button_lamps"]),
                     "countdown": True,
                     "raw_press_time": True,

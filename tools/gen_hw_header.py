@@ -59,6 +59,9 @@ lines.append(f'#define HW_MAPPING_CRC {crc}u')
 offsets = {slot:i*hardware['led']['pixels_per_panel'] for lane in hardware['led']['lanes'] for i,slot in enumerate(lane['slots'])}
 lines.extend(['static const int HW_BUTTON_OFFSET[HW_BUTTON_COUNT] = {',
               '    ' + ', '.join(str(offsets.get(b['slot'], -1)) for b in hardware['buttons']), '};'])
+counts = [len(lane['slots'])*hardware['led']['pixels_per_panel'] for lane in hardware['led']['lanes']]
+lines.append(f'#define HW_MAX_LANE_PIXELS {max(counts)}')
+lines.extend(['static const int HW_LANE_PIXELS[HW_LANE_COUNT] = {', '    '+', '.join(map(str,counts)), '};'])
 target.parent.mkdir(parents=True, exist_ok=True)
 target.write_text("\n".join(lines) + "\n", encoding="utf-8")
 print(target)

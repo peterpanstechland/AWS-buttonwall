@@ -11,7 +11,7 @@
   "led": {
     "family": "WS2815",
     "supply": "12V",
-    "pixels_per_panel": 32,
+    "pixels_per_panel": 31,
     "color_order": "GRB",
     "reset_us": 280,
     "oe_gpio": 42,
@@ -20,7 +20,7 @@
       {"lane": "A", "gpio": 1, "slots": ["A1", "A2", "A3", "A4"]},
       {"lane": "B", "gpio": 2, "slots": ["B1", "B2", "B3", "B4"]},
       {"lane": "C", "gpio": 41, "slots": ["C1", "C2", "C3", "C4"]},
-      {"lane": "D", "gpio": 40, "slots": ["D1", "D2", "D3", "D4"]}
+      {"lane": "D", "gpio": 40, "slots": ["D1", "D2", "D3", "D4", "START"]}
     ]
   },
   "buttons": [
@@ -49,7 +49,7 @@
     ["C3", "C4", "D3", "D4"]
   ],
   "lamps": {
-    "start_neopixel": false,
+    "start_neopixel": true,
     "button_lamps": true,
     "voltage": "unconfirmed",
     "i2c_sda": 47,
