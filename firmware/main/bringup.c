@@ -6,17 +6,26 @@
 
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
-#include "driver/usb_serial_jtag.h"
+#include "esp_rom_sys.h"
 #include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+#include "hal/usb_serial_jtag_ll.h"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
 #define CHASE_US 100000
+#define PERIOD_US 5000
+#define BREATH_US 2000000
 
 static i2c_master_dev_handle_t mcp;
+static SemaphoreHandle_t lamp_lock;
 static bool lamp_ok;
+static volatile uint32_t lamp_target;
+static uint16_t lamp_shadow = 0xFFFF;
 static int active = -1;
 static int chase;
 static uint64_t next_chase;
@@ -36,8 +45,11 @@ static bool mcp_write(uint8_t reg, uint8_t value)
     return i2c_master_transmit(mcp, buf, sizeof buf, 100) == ESP_OK;
 }
 
+static void lamp_task(void *arg);
+
 static void lamp_init(void)
 {
+    lamp_lock = xSemaphoreCreateMutex();
     i2c_master_bus_handle_t bus;
     i2c_master_bus_config_t bus_cfg = {
         .i2c_port = I2C_NUM_0,
@@ -50,7 +62,7 @@ static void lamp_init(void)
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = HW_MCP23017_ADDR,
-        .scl_speed_hz = 100000,
+        .scl_speed_hz = 400000,
     };
     if (i2c_new_master_bus(&bus_cfg, &bus) != ESP_OK) {
         return;
@@ -64,19 +76,85 @@ static void lamp_init(void)
         return;
     }
     lamp_ok = true;
+    xTaskCreate(lamp_task, "lamp", 3072, NULL, 1, NULL);
 }
 
-static void lamp_apply(void)
+static void lamp_write(uint16_t mask)
 {
-    uint16_t mask = 0;
-    if (lamp_ok && active > 0 && HW_LAMP_BIT[active] >= 0) {
-        mask = (uint16_t)(1u << HW_LAMP_BIT[active]);
-    }
     if (!lamp_ok) {
         return;
     }
-    mcp_write(0x14, (uint8_t)(mask & 0xFF));
-    mcp_write(0x15, (uint8_t)(mask >> 8));
+    xSemaphoreTake(lamp_lock, portMAX_DELAY);
+    if (mask != lamp_shadow) {
+        uint8_t lo = (uint8_t)(mask & 0xFF);
+        uint8_t hi = (uint8_t)(mask >> 8);
+        if ((uint8_t)(lamp_shadow & 0xFF) != lo) {
+            mcp_write(0x14, lo);
+        }
+        if ((uint8_t)(lamp_shadow >> 8) != hi) {
+            mcp_write(0x15, hi);
+        }
+        lamp_shadow = mask;
+    }
+    xSemaphoreGive(lamp_lock);
+}
+
+static uint32_t breath_on_us(uint64_t now_us)
+{
+    uint32_t breath = (uint32_t)(now_us % BREATH_US);
+    uint32_t half = BREATH_US / 2;
+    uint32_t tri = breath < half ? breath : (BREATH_US - breath);
+    uint32_t on = tri * (PERIOD_US - 800) / half;
+    if (on > 0 && on < 500) {
+        on = 500;
+    }
+    return on;
+}
+
+static void lamp_task(void *arg)
+{
+    (void)arg;
+    while (true) {
+        uint32_t target = lamp_target;
+        if (target == 0) {
+            lamp_write(0);
+            vTaskDelay(pdMS_TO_TICKS(20));
+            continue;
+        }
+        uint64_t now = esp_timer_get_time();
+        uint32_t on_us = breath_on_us(now);
+        if (on_us == 0) {
+            lamp_write(0);
+            vTaskDelay(pdMS_TO_TICKS(10));
+            continue;
+        }
+        if (on_us >= PERIOD_US - 400) {
+            lamp_write((uint16_t)target);
+            vTaskDelay(pdMS_TO_TICKS(10));
+            continue;
+        }
+        uint32_t phase = (uint32_t)(now % PERIOD_US);
+        bool on = phase < on_us;
+        lamp_write(on ? (uint16_t)target : 0);
+        uint32_t edge = on ? on_us : PERIOD_US;
+        uint32_t wait = edge > phase ? edge - phase : 100;
+        if (wait < 100) {
+            wait = 100;
+        } else if (wait > 400) {
+            wait = 400;
+        }
+        esp_rom_delay_us(wait);
+        taskYIELD();
+    }
+}
+
+static void lamp_set_target(void)
+{
+    lamp_target = 0;
+    if (active > 0 && HW_LAMP_BIT[active] >= 0) {
+        lamp_target = (uint32_t)(1u << HW_LAMP_BIT[active]);
+    }
+    lamp_write(0);
 }
 
 static void show_active(void)
@@ -119,7 +197,7 @@ static void select_slot(int id)
     active = id;
     chase = 0;
     next_chase = esp_timer_get_time() + CHASE_US;
-    lamp_apply();
+    lamp_set_target();
     show_active();
 }
 
@@ -164,7 +242,7 @@ void bringup_init(void)
 void bringup_poll(uint64_t now_us)
 {
     uint8_t ch;
-    while (usb_serial_jtag_read_bytes(&ch, 1, 0) == 1) {
+    while (usb_serial_jtag_ll_read_rxfifo(&ch, 1) == 1) {
         if (ch == '\n' || ch == '\r') {
             if (line_len > 0) {
                 line[line_len] = 0;
@@ -182,6 +260,10 @@ void bringup_poll(uint64_t now_us)
     while (input_pop(&event)) {
         if (event.button_id < HW_BUTTON_COUNT) {
             printf("BW BTN %s %s\n", HW_BUTTON_NAME[event.button_id], event.down ? "DOWN" : "UP");
+            if (event.down && event.button_id == active) {
+                select_slot(-1);
+                printf("BW OK OFF\n");
+            }
         }
     }
 

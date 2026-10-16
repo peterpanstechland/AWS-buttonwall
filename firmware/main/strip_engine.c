@@ -44,8 +44,8 @@ void strip_init(void)
 
 static void put_pixel(int lane, int index, uint8_t r, uint8_t g, uint8_t b)
 {
-    pixels[lane][index * 3] = g;
-    pixels[lane][index * 3 + 1] = r;
+    pixels[lane][index * 3] = r;
+    pixels[lane][index * 3 + 1] = g;
     pixels[lane][index * 3 + 2] = b;
 }
 
@@ -96,7 +96,7 @@ void strip_show(void)
     rmt_transmit_config_t tx = {.loop_count = 0};
     for (int lane = 0; lane < HW_LANE_COUNT; lane++) {
         if (rmt_transmit(channels[lane], encoder, pixels[lane], sizeof pixels[lane], &tx) == ESP_OK) {
-            rmt_tx_wait_all_done(channels[lane], pdMS_TO_TICKS(100));
+            rmt_tx_wait_all_done(channels[lane], 200);
         }
     }
 }

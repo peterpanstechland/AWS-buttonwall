@@ -82,7 +82,8 @@
 <body>
 <header>
   <h1>逐口测试 · 4×4</h1>
-  <button id="connect" type="button">连接串口</button>
+  <select id="ports"></select>
+  <button id="connect" type="button">连接</button>
   <button id="off" type="button" disabled>全部熄灭</button>
   <span id="link">未连接</span>
 </header>
@@ -106,7 +107,7 @@ const LANE_COLOR = { A: "红色", B: "绿色", C: "蓝色", D: "黄色" };
 const bySlot = Object.fromEntries(HW.buttons.map((b) => [b.slot, b]));
 const status = {};
 let active = null;
-let port, reader, writer;
+let linked = false;
 let lampFault = false;
 const logEl = document.getElementById("log");
 const titleEl = document.getElementById("title");
@@ -137,14 +138,14 @@ function describe(slot) {
   const gpio = bySlot[slot] ? bySlot[slot].gpio : "";
   const prev = upstream(slot);
   const color = LANE_COLOR[slot[0]] || "";
-  let wire = `把线束插到 ${slot}（${CN[slot] || ""}）。灯带应跑${color}，按钮灯应亮。`;
+  let wire = `把线束插到 ${slot}（${CN[slot] || ""}）。灯带应跑${color}，按钮灯应慢慢变亮再变暗。`;
   if (prev.length) {
     const shorts = prev.map((name) => `${name}（${CN[name]}）的第 5 脚和第 7 脚`).join("、");
     wire += ` 这一口的灯带数据从前面串过来，原理图没有旁路跳帽。测灯带前先断电，把 ${shorts} 短接，再上电。按键和按钮灯不经过这串数据，不短接也能测。`;
   } else {
     wire += " 这一口是该组数据入口，灯带直接接在电平转换后面。";
   }
-  wire += ` 现在按下这个口上的按键。固件里这一口的按键是 GPIO${gpio}（${key}）。换下一个口之前先关 12V。`;
+  wire += ` 现在按下这个口上的大按键，灯带和按钮灯应一起熄灭。固件里这一口的按键是 GPIO${gpio}（${key}）。换下一个口之前先关 12V。`;
   if (lampFault) wire += " 按钮灯芯片没有应答，按钮灯可能不亮，灯带和按键仍可测。";
   titleEl.textContent = slot;
   bodyEl.className = "wait";
@@ -162,7 +163,7 @@ function onPress(name) {
     status[active] = "pass";
     titleEl.textContent = active + " 按键正常";
     bodyEl.className = "pass";
-    bodyEl.textContent = "收到 " + active + " 按下。可以关 12V，把线束换到下一个口。";
+    bodyEl.textContent = "收到 " + active + " 按下，灯带和按钮灯应已熄灭。可以关 12V，把线束换到下一个口。";
   } else {
     status[active] = "bad";
     titleEl.textContent = "按键接到了 " + name;
@@ -184,66 +185,56 @@ function onLine(line) {
   } else if (parts[0] === "BTN" && parts[2] === "DOWN") {
     onPress(parts[1]);
   } else if (parts[0] === "OK" && parts[1] === "OFF") {
+    const passed = active && status[active] === "pass";
     active = null;
-    titleEl.textContent = "已熄灭";
-    bodyEl.className = "";
-    bodyEl.textContent = "灯带已发全黑，按钮灯已关。点下一个口继续。";
+    if (!passed) {
+      titleEl.textContent = "已熄灭";
+      bodyEl.className = "";
+      bodyEl.textContent = "灯带已发全黑，按钮灯已关。点下一个口继续。";
+    }
     render();
   }
 }
 
 async function send(text) {
-  if (!writer) return;
-  await writer.write(new TextEncoder().encode(text + "\n"));
-}
-
-async function readLoop() {
-  const decoder = new TextDecoder();
-  let buf = "";
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      let nl;
-      while ((nl = buf.indexOf("\n")) >= 0) {
-        const line = buf.slice(0, nl).replace(/\r/g, "").trim();
-        buf = buf.slice(nl + 1);
-        if (line) onLine(line);
-      }
-    }
-  } catch (err) {
-    log(String(err));
-  }
-  document.getElementById("link").textContent = "串口已断开";
-  document.getElementById("off").disabled = true;
-  writer = null;
-  reader = null;
+  if (!linked) return;
+  await fetch("/api/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
 }
 
 async function connect() {
-  if (!navigator.serial) {
-    bodyEl.textContent = "这个页面要用 Chrome 或 Edge 打开，才能选串口。";
+  const port = document.getElementById("ports").value;
+  if (!port) {
+    bodyEl.textContent = "没有找到串口。确认开发板的 USB 已经插上。";
     return;
   }
-  port = await navigator.serial.requestPort();
-  await port.open({ baudRate: 115200 });
-  writer = port.writable.getWriter();
-  reader = port.readable.getReader();
+  const res = await fetch("/api/open", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ port })
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    bodyEl.className = "bad";
+    bodyEl.textContent = body.error || "串口打开失败";
+    return;
+  }
+  linked = true;
   document.getElementById("off").disabled = false;
-  document.getElementById("link").textContent = "串口已打开，等待固件应答";
-  readLoop();
-  await send("BW PING");
+  document.getElementById("link").textContent = port + " 已打开，等待固件应答";
   setTimeout(() => {
     if (document.getElementById("link").textContent.indexOf("已连接") !== 0) {
       bodyEl.className = "bad";
-      bodyEl.textContent = "串口开了，没有收到 BW PONG。选开发板上原生 USB 那只（USB 串行设备），波特率 115200，并确认烧的是带逐口测试的固件。";
+      bodyEl.textContent = "串口开了，没有收到 BW PONG。确认选的是开发板那个口，并且烧的是带逐口测试的固件。";
     }
   }, 1500);
 }
 
 async function choose(slot) {
-  if (!writer) {
+  if (!linked) {
     bodyEl.textContent = "先连接串口。";
     return;
   }
@@ -269,6 +260,17 @@ document.getElementById("connect").addEventListener("click", () => {
   connect().catch((err) => { bodyEl.textContent = String(err); });
 });
 document.getElementById("off").addEventListener("click", () => send("BW OFF"));
+fetch("/api/ports").then((res) => res.json()).then((ports) => {
+  const sel = document.getElementById("ports");
+  sel.innerHTML = ports.map((port) => `<option value="${port.device}">${port.device} ${port.description}</option>`).join("");
+  const esp = ports.find((port) => port.vid === 12346);
+  if (esp) sel.value = esp.device;
+});
+setInterval(() => {
+  fetch("/api/lines").then((res) => res.json()).then((lines) => {
+    for (const line of lines) onLine(line);
+  }).catch(() => {});
+}, 200);
 </script>
 </body>
 </html>
