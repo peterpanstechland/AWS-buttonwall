@@ -99,7 +99,7 @@ class PhysicalNavigationTests(unittest.TestCase):
     def test_every_settings_key_and_replay_contract(self):
         self.open_settings()
         self.assertEqual(self.engine.ui_settings, {"language": "zh", "voice_enabled": True, "volume": 80,
-                                                 "reduced_motion": False, "revision": 0, "replay_seq": 0})
+                                                 "reduced_motion": False, "revision": 0, "replay_seq": 0, "welcome_reminder": True})
         self.hit("A2")
         self.assertEqual(self.engine.ui_settings["language"], "en")
         self.hit("A1")
@@ -260,7 +260,7 @@ class PhysicalNavigationTests(unittest.TestCase):
             try:
                 engine = Engine(second)
                 self.assertEqual(engine.ui_settings, {"language": "en", "volume": 40, "voice_enabled": False,
-                                                      "reduced_motion": True, "revision": 1, "replay_seq": 0})
+                                                      "reduced_motion": True, "revision": 1, "replay_seq": 0, "welcome_reminder": True})
                 self.assertEqual(second.conn.execute("SELECT count(*) FROM sessions").fetchone()[0], 0)
             finally:
                 second.conn.close()

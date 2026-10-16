@@ -2,6 +2,7 @@
 export function guidanceFor(snapshot, lang = 'zh', online = true) {
   const guide = basicGuidanceFor(snapshot, lang, online);
   const s = snapshot || {};
+  if (s.state === 'IDLE' && s.ui_settings?.welcome_reminder === false) return {...guide, audioId:null, repeatMs:0};
   if (!online || s.state !== 'RESULT') return guide;
   const missionId = s.mode?.startsWith('RUSH') ? s.last_completed_graph?.id
     : s.final_state === 'VALID' && !s.failure ? s.mission?.id : null;

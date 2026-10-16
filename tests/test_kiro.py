@@ -71,8 +71,9 @@ class KiroTests(unittest.TestCase):
             node = next(n for n in frontier(self.engine.missions[self.engine.mission_id], self.engine.done) if n['required'])
             self.service(node['service'])
         self.assertEqual(self.engine.snapshot()['graph']['status'], 'complete')
+        completed_mission = self.engine.mission_id
         self.gesture('CLICK')
-        self.assertNotEqual(self.engine.mission_id, 'M01_VOICE')
+        self.assertNotEqual(self.engine.mission_id, completed_mission)
         self.assertIn(self.engine.mission_id, self.engine.missions)
         self.assertEqual(self.engine.state, 'ACTIVE')
         self.gesture('HOLD')

@@ -34,7 +34,10 @@ class Store:
                 replay_seq INTEGER NOT NULL DEFAULT 0
             )
         """)
-        self.conn.execute("INSERT OR IGNORE INTO ui_preferences VALUES (1, 'zh', 1, 80, 0, 0, 0)")
+        columns = {row[1] for row in self.conn.execute("PRAGMA table_info(ui_preferences)")}
+        if "welcome_reminder" not in columns:
+            self.conn.execute("ALTER TABLE ui_preferences ADD COLUMN welcome_reminder INTEGER NOT NULL DEFAULT 1 CHECK (welcome_reminder IN (0, 1))")
+        self.conn.execute("INSERT OR IGNORE INTO ui_preferences (singleton, language, voice_enabled, volume, reduced_motion, revision, replay_seq) VALUES (1, 'zh', 1, 80, 0, 0, 0)")
         self.conn.commit()
         self._alias = 41
 
@@ -43,6 +46,7 @@ class Store:
         row.pop("singleton")
         row["voice_enabled"] = bool(row["voice_enabled"])
         row["reduced_motion"] = bool(row["reduced_motion"])
+        row["welcome_reminder"] = bool(row["welcome_reminder"])
         return row
 
     def save_ui_settings(self, changes: dict, replay=False) -> dict:
@@ -54,9 +58,9 @@ class Store:
             updated["replay_seq"] += int(replay)
             self.conn.execute("""
                 UPDATE ui_preferences SET language = ?, voice_enabled = ?, volume = ?,
-                    reduced_motion = ?, revision = ?, replay_seq = ? WHERE singleton = 1
+                    reduced_motion = ?, revision = ?, replay_seq = ?, welcome_reminder = ? WHERE singleton = 1
             """, tuple(updated[key] for key in (
-                "language", "voice_enabled", "volume", "reduced_motion", "revision", "replay_seq"
+                "language", "voice_enabled", "volume", "reduced_motion", "revision", "replay_seq", "welcome_reminder"
             )))
         return updated
 

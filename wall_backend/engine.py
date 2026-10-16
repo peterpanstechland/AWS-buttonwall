@@ -503,13 +503,13 @@ class Engine:
                          and (self.last_completed_graph or self.confirmed_mission))
         if self.state != "SETTINGS" and not result_replay:
             raise RuntimeError("SETTINGS_NOT_OPEN")
-        allowed = {"language", "voice_enabled", "volume", "reduced_motion"}
+        allowed = {"language", "voice_enabled", "volume", "reduced_motion", "welcome_reminder"}
         if not isinstance(changes, dict) or not changes or set(changes) - allowed:
             raise ValueError("INVALID_SETTINGS")
         for name, value in changes.items():
             if name == "language" and (type(value) is not str or value not in {"zh", "en"}):
                 raise ValueError("INVALID_LANGUAGE")
-            if name in {"voice_enabled", "reduced_motion"} and type(value) is not bool:
+            if name in {"voice_enabled", "reduced_motion", "welcome_reminder"} and type(value) is not bool:
                 raise ValueError("INVALID_BOOLEAN")
             if name == "volume" and (type(value) is not int or not 0 <= value <= 100):
                 raise ValueError("INVALID_VOLUME")
@@ -558,6 +558,7 @@ class Engine:
                 "language:zh": {"language": "zh"},
                 "language:en": {"language": "en"},
                 "voice_toggle": {"voice_enabled": not prefs["voice_enabled"]},
+                "welcome_toggle": {"welcome_reminder": not prefs["welcome_reminder"]},
                 "replay": {"voice_enabled": True},
                 "volume_down": {"volume": max(0, prefs["volume"] - 20)},
                 "volume_up": {"volume": min(100, prefs["volume"] + 20)},
@@ -615,6 +616,7 @@ class Engine:
             cell("A3", "volume_down", label("音量 −20", "Volume −20"))
             cell("A4", "volume_up", label("音量 +20", "Volume +20"))
             cell("B3", "motion_toggle", label("减少动态", "Reduce motion"), prefs["reduced_motion"])
+            cell("B4", "welcome_toggle", label("首页提醒：开" if prefs["welcome_reminder"] else "首页提醒：关", "Welcome: On" if prefs["welcome_reminder"] else "Welcome: Off"), prefs["welcome_reminder"])
             cell("C3", "back", label("返回", "Back"), color=white, effect="steady")
             cell("D4", "home", label("回首页", "Home"), color=white, effect="steady")
             kiro.update(label=label("Kiro 返回", "Kiro returns"), click=label("返回上一页", "Return to previous screen"),

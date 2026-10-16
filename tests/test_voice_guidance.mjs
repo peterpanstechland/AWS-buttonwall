@@ -69,3 +69,17 @@ staleEnd(); await new Promise(r=>setTimeout(r,0));
 assert.equal(queueAudio.src,'/audio/zh/mode_free.mp3','leaving the result cancels the old playlist');
 queue.destroy();
 console.log('Voice guidance checks passed: target names, bilingual assets, no ranked answers, no polling replay.');
+
+// Home announcements have an independent persisted switch; game speech stays on.
+const welcomeOn=guidanceFor({state:'IDLE',ui_settings:{welcome_reminder:true}});
+const welcomeOff=guidanceFor({state:'IDLE',ui_settings:{welcome_reminder:false}});
+assert.equal(welcomeOn.repeatMs,60000);
+assert.equal(welcomeOff.repeatMs,0);
+assert.equal(welcomeOff.audioId,null);
+assert.equal(guidanceFor({...snap,ui_settings:{welcome_reminder:false}}).audioId,'service_transcribe');
+let welcomePlays=0;
+const welcomeAudio={pause(){},async play(){welcomePlays++;}};
+const welcomePlayer=new VoiceGuide({manifest,enabled:true,storage:null,audioFactory:()=>welcomeAudio});
+welcomePlayer.update(welcomeOff);await new Promise(r=>setTimeout(r,0));assert.equal(welcomePlays,0);
+welcomePlayer.update(welcomeOn);await new Promise(r=>setTimeout(r,0));assert.equal(welcomePlays,1);
+welcomePlayer.update(welcomeOff);assert.equal(welcomePlayer.state.playing,false);welcomePlayer.destroy();
